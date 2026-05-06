@@ -2,57 +2,48 @@
 'use client';
 
 import Link from 'next/link';
-import { useRouter, usePathname } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function Navbar() {
     const router = useRouter();
-    const pathname = usePathname();
-    const [isLoggedIn, setIsLoggedIn] = useState(false);
-
-    // Mengecek apakah user sudah login (punya token) setiap kali pindah halaman
-    useEffect(() => {
-        const token = localStorage.getItem('token');
-        setIsLoggedIn(!!token);
-    }, [pathname]);
+    const isLoggedIn = typeof window !== 'undefined' && !!localStorage.getItem('token');
 
     const handleLogout = () => {
         localStorage.removeItem('token');
-        setIsLoggedIn(false);
         router.push('/login');
     };
 
     return (
-        <nav className="bg-blue-700 text-white shadow-md">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex justify-between items-center h-16">
-                    {/* Logo / Nama Aplikasi */}
-                    <div className="flex-shrink-0 font-extrabold text-xl tracking-wider">
+        <nav className="sticky top-0 z-40 border-b border-[#1f3482] bg-[#2b44a8] text-white shadow-sm">
+            <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                <div className="flex h-18 items-center justify-between">
+                    <div className="flex-shrink-0 text-xl font-extrabold tracking-tight sm:text-2xl">
                         <Link href="/">
-                            JASTIP<span className="text-yellow-400">JSON</span>
+                            <span className="text-white">JASTIP</span>
+                            <span className="text-[#ffd54a]">JSON</span>
                         </Link>
                     </div>
 
-                    {/* Menu Navigasi */}
-                    <div className="flex space-x-4 items-center">
+                    <div className="flex items-center gap-2 sm:gap-3">
                         {isLoggedIn ? (
                             <>
-                                <Link href="/profile" className="hover:text-yellow-300 font-medium px-3 py-2 rounded-md transition-colors">
+                                <Link href="/profile" className="rounded-md px-3 py-2 text-sm font-semibold tracking-tight transition-colors hover:bg-white/10 hover:text-white sm:text-[15px]" style={{ color: "#e9efff" }}>
                                     Profil Saya
                                 </Link>
                                 <button
                                     onClick={handleLogout}
-                                    className="bg-red-500 hover:bg-red-600 text-white font-bold py-1.5 px-4 rounded text-sm transition-colors"
+                                    className="rounded-md bg-white/14 px-4 py-2 text-sm font-semibold tracking-tight transition-colors hover:bg-white/20 hover:text-white sm:text-[15px]"
+                                    style={{ color: "#f8fbff" }}
                                 >
                                     Logout
                                 </button>
                             </>
                         ) : (
                             <>
-                                <Link href="/login" className="hover:text-yellow-300 font-medium px-3 py-2 rounded-md transition-colors">
+                                <Link href="/login" className="rounded-md px-3 py-2 text-sm font-semibold tracking-tight transition-colors hover:bg-white/10 hover:text-white sm:text-[15px]" style={{ color: "#dbe6ff" }}>
                                     Masuk
                                 </Link>
-                                <Link href="/register" className="bg-yellow-400 hover:bg-yellow-500 text-blue-900 font-bold py-1.5 px-4 rounded text-sm transition-colors">
+                                <Link href="/register" className="min-w-24 rounded-md border border-[#f0c13e] bg-[#ffd457] px-4 py-2 text-center text-sm font-bold tracking-tight shadow-[0_6px_16px_rgba(255,213,74,0.22)] transition-all hover:-translate-y-0.5 hover:bg-[#ffcf43] hover:text-[#17254a] sm:text-[15px]" style={{ color: "#21315f" }}>
                                     Daftar
                                 </Link>
                             </>

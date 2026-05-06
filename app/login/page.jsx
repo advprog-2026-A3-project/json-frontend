@@ -19,21 +19,15 @@ export default function LoginPage() {
         setError('');
 
         try {
-            // Menembak ke endpoint /api/auth/login di Spring Boot
             const response = await axiosInstance.post('/api/auth/login', {
                 email: email,
                 password: password
             });
 
-            // Menyimpan token ke Local Storage
             const token = response.data.token;
             localStorage.setItem('token', token);
-
             alert('Login Berhasil!');
-
-            // Arahkan ke halaman utama setelah sukses
             router.push('/');
-
         } catch (err) {
             console.error(err);
             setError(err.response?.data?.message || 'Gagal login. Periksa email dan password.');
@@ -43,41 +37,46 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-100">
-            <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
-                <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">Login JSON</h2>
+        <div className="min-h-[calc(100vh-72px)] px-4 py-10 sm:px-6 lg:px-8">
+            <div className="mx-auto max-w-2xl">
+                <section className="rounded-lg border border-blue-100 bg-white p-8 shadow-[0_18px_45px_rgba(24,51,122,0.08)] sm:p-10">
+                    <h2 className="text-center text-3xl font-black text-slate-950">Login JSON</h2>
+                    <p className="mt-2 text-center text-sm leading-6 text-slate-500">Masuk ke akun yang sudah terdaftar.</p>
 
-                {error && <div className="bg-red-100 text-red-700 p-3 rounded mb-4 text-sm">{error}</div>}
+                    {error && <div className="mt-6 rounded-md border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</div>}
 
-                <form onSubmit={handleLogin} className="space-y-4">
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                        <input
-                            type="email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            required
-                            className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
-                        <input
-                            type="password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            required
-                            className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
-                        />
-                    </div>
-                    <button
-                        type="submit"
-                        disabled={isLoading}
-                        className="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 disabled:opacity-50 transition-colors"
-                    >
-                        {isLoading ? 'Memproses...' : 'Masuk'}
-                    </button>
-                </form>
+                    <form onSubmit={handleLogin} className="mt-8 space-y-5">
+                        <div>
+                            <label className="mb-2 block text-sm font-semibold text-slate-700">Email</label>
+                            <input
+                                type="email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                required
+                                placeholder="nama@email.com"
+                                className="w-full rounded-md border border-slate-300 px-4 py-3 text-slate-950 outline-none transition-colors placeholder:text-slate-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                            />
+                        </div>
+                        <div>
+                            <label className="mb-2 block text-sm font-semibold text-slate-700">Password</label>
+                            <input
+                                type="password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                required
+                                placeholder="Masukkan password"
+                                className="w-full rounded-md border border-slate-300 px-4 py-3 text-slate-950 outline-none transition-colors placeholder:text-slate-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                            />
+                        </div>
+                        <button
+                            type="submit"
+                            disabled={isLoading}
+                            className="w-full rounded-md bg-blue-700 px-4 py-3 text-base font-bold text-white shadow-[0_12px_24px_rgba(33,73,216,0.2)] transition-all hover:-translate-y-0.5 hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                            {isLoading ? 'Memproses...' : 'Masuk'}
+                        </button>
+                    </form>
+                </section>
             </div>
         </div>
     );
