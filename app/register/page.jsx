@@ -5,6 +5,9 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import axiosInstance from '@/utils/axios';
 import Link from 'next/link';
+import toast from 'react-hot-toast';
+
+import { useEffect } from 'react';
 
 export default function RegisterPage() {
     const [name, setName] = useState('');
@@ -15,6 +18,12 @@ export default function RegisterPage() {
     const [isSuccess, setIsSuccess] = useState(false);
 
     const router = useRouter();
+
+    useEffect(() => {
+        if (typeof window !== 'undefined' && localStorage.getItem('token')) {
+            router.replace('/home');
+        }
+    }, [router]);
 
     const handleRegister = async (e) => {
         e.preventDefault();
@@ -29,14 +38,17 @@ export default function RegisterPage() {
             });
 
             setIsSuccess(true);
-            alert('Pendaftaran Berhasil! Silakan Login.');
+            toast.success('Berhasil membuat akun! Silakan Login.');
 
             setTimeout(() => {
                 router.push('/login');
             }, 1000);
         } catch (err) {
             console.error(err);
-            setError(err.response?.data?.message || 'Gagal mendaftar. Periksa kembali data Anda.');
+            const errorMsg = err.response?.data?.message
+                || (err.code === 'ERR_NETWORK' ? 'Ada masalah saat menghubungi server.' : 'Gagal mendaftar. Periksa kembali data Anda.');
+            setError(errorMsg);
+            toast.error(errorMsg);
         } finally {
             setIsLoading(false);
         }
@@ -91,19 +103,19 @@ export default function RegisterPage() {
 
                         <button
                             type="submit"
-                            disabled={isLoading || isSuccess}
+                            disabled={isLoading}
                             className="w-full rounded-md bg-blue-700 px-4 py-3 text-base font-bold text-white shadow-[0_12px_24px_rgba(33,73,216,0.2)] transition-all hover:-translate-y-0.5 hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-50"
                         >
-                            {isLoading ? 'Mendaftarkan...' : 'Daftar Sekarang'}
+                            {isLoading ? 'Memproses...' : 'Daftar Sekarang'}
                         </button>
-                    </form>
 
-                    <div className="mt-8 border-t border-slate-200 pt-5 text-center text-sm text-slate-600">
-                        Sudah punya akun?{' '}
-                        <Link href="/login" className="font-semibold text-blue-600 hover:text-blue-800 hover:underline">
-                            Masuk di sini
-                        </Link>
-                    </div>
+                        <p className="mt-6 text-center text-sm font-medium text-slate-600">
+                            Sudah punya akun?{' '}
+                            <Link href="/login" className="font-bold text-blue-600 transition-colors hover:text-blue-700 hover:underline">
+                                Masuk di sini
+                            </Link>
+                        </p>
+                    </form>
                 </section>
             </div>
         </div>

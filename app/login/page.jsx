@@ -1,9 +1,11 @@
 // app/login/page.jsx
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import axiosInstance from '@/utils/axios';
+import toast from 'react-hot-toast';
 
 export default function LoginPage() {
     const [email, setEmail] = useState('');
@@ -12,6 +14,12 @@ export default function LoginPage() {
     const [isLoading, setIsLoading] = useState(false);
 
     const router = useRouter();
+
+    useEffect(() => {
+        if (typeof window !== 'undefined' && localStorage.getItem('token')) {
+            router.replace('/home');
+        }
+    }, [router]);
 
     const handleLogin = async (e) => {
         e.preventDefault();
@@ -26,11 +34,14 @@ export default function LoginPage() {
 
             const token = response.data.token;
             localStorage.setItem('token', token);
-            alert('Login Berhasil!');
-            router.push('/');
+            toast.success('Login Berhasil!');
+            router.push('/home');
         } catch (err) {
             console.error(err);
-            setError(err.response?.data?.message || 'Gagal login. Periksa email dan password.');
+            const errorMsg = err.response?.data?.message
+                || (err.code === 'ERR_NETWORK' ? 'Ada masalah saat menghubungi server.' : 'Gagal login. Periksa email dan password.');
+            setError(errorMsg);
+            toast.error(errorMsg);
         } finally {
             setIsLoading(false);
         }
@@ -75,6 +86,13 @@ export default function LoginPage() {
                         >
                             {isLoading ? 'Memproses...' : 'Masuk'}
                         </button>
+
+                        <p className="mt-6 text-center text-sm font-medium text-slate-600">
+                            Belum punya akun?{' '}
+                            <Link href="/register" className="font-bold text-blue-600 transition-colors hover:text-blue-700 hover:underline">
+                                Daftar sekarang
+                            </Link>
+                        </p>
                     </form>
                 </section>
             </div>
