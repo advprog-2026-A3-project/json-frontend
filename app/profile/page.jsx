@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import axiosInstance from '@/utils/axios';
 
@@ -21,7 +21,7 @@ export default function ProfilePage() {
 
     const router = useRouter();
 
-    const fetchProfile = async () => {
+    const fetchProfile = useCallback(async () => {
         try {
             const response = await axiosInstance.get('/api/profile/me');
             setUser(response.data);
@@ -43,7 +43,7 @@ export default function ProfilePage() {
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [router]);
 
     useEffect(() => {
         const token = localStorage.getItem('token');
@@ -52,7 +52,7 @@ export default function ProfilePage() {
         } else {
             fetchProfile();
         }
-    }, [router]);
+    }, [router, fetchProfile]);
 
     const handleUpdateProfile = async (e) => {
         e.preventDefault();
