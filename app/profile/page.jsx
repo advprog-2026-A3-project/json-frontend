@@ -79,127 +79,159 @@ export default function ProfilePage() {
     };
 
     if (isLoading) {
-        return <div className="min-h-screen flex items-center justify-center bg-gray-50 text-blue-600 font-bold">Memuat profil...</div>;
+        return (
+            <div className="min-h-[calc(100vh-64px)] flex items-center justify-center bg-[#f4f7f9]">
+                <div className="flex flex-col items-center gap-3">
+                    <div className="h-10 w-10 animate-spin rounded-full border-4 border-blue-200 border-t-[#2149d8]"></div>
+                    <p className="font-bold text-[#17254a]">Memuat profil...</p>
+                </div>
+            </div>
+        );
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 py-10 px-4">
-            <div className="max-w-3xl mx-auto bg-white shadow-md rounded-lg overflow-hidden border border-gray-100">
-                <div className="bg-blue-700 px-6 py-5 flex justify-between items-center">
-                    <h2 className="text-2xl font-bold text-white">Profil Pengguna</h2>
-                    {!isEditing && (
-                        <button
-                            onClick={() => setIsEditing(true)}
-                            className="bg-yellow-400 hover:bg-yellow-500 text-blue-900 font-bold py-1.5 px-4 rounded text-sm transition-colors shadow-sm"
-                        >
-                            Edit Profil
-                        </button>
-                    )}
+        <div className="min-h-[calc(100vh-64px)] bg-[#f4f7f9] py-12 px-4 sm:px-6 lg:px-8">
+            <div className="max-w-3xl mx-auto bg-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] rounded-3xl overflow-hidden border border-slate-100">
+                
+                {/* Header Banner */}
+                <div className="relative bg-gradient-to-r from-[#2b44a8] to-[#1f3482] h-40">
+                    <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-5"></div>
+                    
+                    {/* Avatar Floating */}
+                    <div className="absolute -bottom-12 left-8 sm:left-10">
+                        <div className="h-24 w-24 rounded-full border-4 border-white bg-gradient-to-br from-slate-100 to-slate-200 shadow-md flex items-center justify-center text-4xl font-black text-slate-400">
+                            {user?.displayName ? user.displayName.charAt(0).toUpperCase() : user?.username?.charAt(0).toUpperCase() || '👤'}
+                        </div>
+                    </div>
+
+                    {/* Edit Button */}
+                    <div className="absolute bottom-6 right-8 sm:right-10 z-10">
+                        {!isEditing && (
+                            <button
+                                onClick={() => setIsEditing(true)}
+                                className="bg-[#ffd457] hover:bg-[#ffcf43] text-[#17254a] font-bold py-2.5 px-6 rounded-full text-sm transition-all shadow-md hover:-translate-y-0.5"
+                            >
+                                Edit Profil
+                            </button>
+                        )}
+                    </div>
                 </div>
 
-                <div className="p-6">
-                    {error && <div className="bg-red-100 text-red-700 p-3 rounded mb-4 text-sm">{error}</div>}
-                    {successMsg && <div className="bg-green-100 text-green-700 p-3 rounded mb-4 text-sm font-medium">{successMsg}</div>}
+                <div className="pt-16 px-8 sm:px-10 pb-10">
+                    {error && (
+                        <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-700">
+                            {error}
+                        </div>
+                    )}
+                    {successMsg && (
+                        <div className="mb-6 rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-sm font-medium text-emerald-700">
+                            {successMsg}
+                        </div>
+                    )}
 
                     {user && !isEditing && (
-                        <div className="space-y-5">
-                            <div className="flex justify-between items-start border-b border-gray-100 pb-4">
+                        <div className="space-y-6">
+                            {/* Header Info */}
+                            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between border-b border-slate-100 pb-6">
                                 <div>
-                                    <p className="text-xs text-gray-400 font-bold uppercase tracking-wider mb-1">Display Name</p>
-                                    <p className="text-lg text-gray-800 font-medium">{user.displayName || '-'}</p>
+                                    <h1 className="text-2xl font-black text-[#17254a]">{user.displayName || '-'}</h1>
+                                    <p className="text-slate-500 font-medium">@{user.username}</p>
                                 </div>
-                                <div className="text-right">
-                                    <span className="inline-block bg-blue-50 text-blue-700 border border-blue-200 text-xs px-3 py-1 rounded-full uppercase font-bold tracking-wide mb-1">
+                                <div className="mt-4 flex flex-wrap gap-2 sm:mt-0 sm:justify-end">
+                                    <span className="inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-bold uppercase tracking-wide text-[#2149d8]">
                                         {user.role}
                                     </span>
-                                    <br/>
-                                    <span className={`inline-block text-xs px-3 py-1 rounded-full uppercase font-bold tracking-wide ${
-                                        user.kycStatus === 'APPROVED' ? 'bg-green-50 text-green-700 border border-green-200' :
-                                            user.kycStatus === 'PENDING' ? 'bg-yellow-50 text-yellow-700 border border-yellow-200' :
-                                                'bg-gray-50 text-gray-700 border border-gray-200'
+                                    <span className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-bold uppercase tracking-wide ${
+                                        user.kycStatus === 'APPROVED' ? 'border-emerald-200 bg-emerald-50 text-emerald-700' :
+                                        user.kycStatus === 'PENDING' ? 'border-amber-200 bg-amber-50 text-amber-700' :
+                                        'border-slate-200 bg-slate-50 text-slate-700'
                                     }`}>
                                         KYC: {user.kycStatus}
                                     </span>
                                 </div>
                             </div>
-                            <div className="border-b border-gray-100 pb-4">
-                                <p className="text-xs text-gray-400 font-bold uppercase tracking-wider mb-1">Username</p>
-                                <p className="text-lg text-gray-800 font-medium">@{user.username}</p>
-                            </div>
-                            <div className="border-b border-gray-100 pb-4">
-                                <p className="text-xs text-gray-400 font-bold uppercase tracking-wider mb-1">Email Account</p>
-                                <p className="text-lg text-gray-800 font-medium">{user.email}</p>
-                            </div>
-                            <div className="border-b border-gray-100 pb-4">
-                                <p className="text-xs text-gray-400 font-bold uppercase tracking-wider mb-1">Nomor HP</p>
-                                <p className="text-lg text-gray-800 font-medium">{user.phoneNumber || 'Belum diisi'}</p>
-                            </div>
-                            <div className="border-b border-gray-100 pb-4">
-                                <p className="text-xs text-gray-400 font-bold uppercase tracking-wider mb-1">Bio</p>
-                                <p className="text-gray-800">{user.bio || 'Belum ada bio'}</p>
+
+                            {/* Details Grid */}
+                            <div className="grid sm:grid-cols-2 gap-8 pt-2">
+                                <div>
+                                    <p className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-1.5">Email Account</p>
+                                    <p className="text-base font-medium text-slate-800">{user.email}</p>
+                                </div>
+                                <div>
+                                    <p className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-1.5">Nomor HP</p>
+                                    <p className="text-base font-medium text-slate-800">{user.phoneNumber || <span className="text-slate-400 italic">Belum diisi</span>}</p>
+                                </div>
+                                <div className="sm:col-span-2">
+                                    <p className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-1.5">Bio</p>
+                                    <p className="text-base text-slate-700 leading-relaxed bg-slate-50 rounded-xl p-4 border border-slate-100">{user.bio || <span className="text-slate-400 italic">Belum ada bio</span>}</p>
+                                </div>
                             </div>
                         </div>
                     )}
 
                     {/* FORM EDIT PROFIL */}
                     {isEditing && (
-                        <form onSubmit={handleUpdateProfile} className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-1">Username</label>
-                                <input
-                                    type="text"
-                                    value={editForm.username}
-                                    onChange={(e) => setEditForm({...editForm, username: e.target.value})}
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none text-black"
-                                />
+                        <form onSubmit={handleUpdateProfile} className="space-y-5 pt-2">
+                            <h2 className="text-xl font-black text-[#17254a] mb-6">Edit Informasi Profil</h2>
+                            <div className="grid sm:grid-cols-2 gap-5">
+                                <div>
+                                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Username</label>
+                                    <input
+                                        type="text"
+                                        value={editForm.username}
+                                        onChange={(e) => setEditForm({...editForm, username: e.target.value})}
+                                        className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:border-[#2149d8] focus:ring-4 focus:ring-[#2149d8]/10 outline-none text-slate-800 transition-all font-medium"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Display Name</label>
+                                    <input
+                                        type="text"
+                                        value={editForm.displayName}
+                                        onChange={(e) => setEditForm({...editForm, displayName: e.target.value})}
+                                        className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:border-[#2149d8] focus:ring-4 focus:ring-[#2149d8]/10 outline-none text-slate-800 transition-all font-medium"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Email <span className="normal-case tracking-normal text-slate-400 font-normal">(Tidak bisa diubah)</span></label>
+                                    <input
+                                        type="email"
+                                        value={user.email}
+                                        disabled
+                                        className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-slate-400 cursor-not-allowed font-medium"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Nomor HP</label>
+                                    <input
+                                        type="text"
+                                        value={editForm.phoneNumber}
+                                        onChange={(e) => setEditForm({...editForm, phoneNumber: e.target.value})}
+                                        className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:border-[#2149d8] focus:ring-4 focus:ring-[#2149d8]/10 outline-none text-slate-800 transition-all font-medium"
+                                    />
+                                </div>
+                                <div className="sm:col-span-2">
+                                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Bio Singkat</label>
+                                    <textarea
+                                        value={editForm.bio}
+                                        onChange={(e) => setEditForm({...editForm, bio: e.target.value})}
+                                        rows="3"
+                                        className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:border-[#2149d8] focus:ring-4 focus:ring-[#2149d8]/10 outline-none text-slate-800 transition-all font-medium resize-none"
+                                        placeholder="Ceritakan sedikit tentang dirimu..."
+                                    />
+                                </div>
                             </div>
-                            <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-1">Display Name</label>
-                                <input
-                                    type="text"
-                                    value={editForm.displayName}
-                                    onChange={(e) => setEditForm({...editForm, displayName: e.target.value})}
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none text-black"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-1">Email (Tidak bisa diubah)</label>
-                                <input
-                                    type="email"
-                                    value={user.email}
-                                    disabled
-                                    className="w-full px-4 py-2 border border-gray-200 bg-gray-100 text-gray-500 rounded-md cursor-not-allowed"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-1">Nomor HP</label>
-                                <input
-                                    type="text"
-                                    value={editForm.phoneNumber}
-                                    onChange={(e) => setEditForm({...editForm, phoneNumber: e.target.value})}
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none text-black"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-1">Bio Singkat</label>
-                                <textarea
-                                    value={editForm.bio}
-                                    onChange={(e) => setEditForm({...editForm, bio: e.target.value})}
-                                    rows="3"
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none text-black"
-                                />
-                            </div>
-                            <div className="flex space-x-3 pt-4 border-t border-gray-100">
+                            <div className="flex flex-wrap gap-3 pt-6 border-t border-slate-100 mt-6">
                                 <button
                                     type="submit"
-                                    className="bg-blue-700 hover:bg-blue-800 text-white font-bold py-2 px-6 rounded transition-colors"
+                                    className="bg-[#2149d8] hover:bg-[#1a38a6] text-white font-bold py-2.5 px-8 rounded-full transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5"
                                 >
                                     Simpan Perubahan
                                 </button>
                                 <button
                                     type="button"
                                     onClick={() => setIsEditing(false)}
-                                    className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-6 rounded transition-colors"
+                                    className="bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold py-2.5 px-8 rounded-full transition-colors"
                                 >
                                     Batal
                                 </button>
@@ -207,11 +239,15 @@ export default function ProfilePage() {
                         </form>
                     )}
 
-                    <div className="mt-10 flex justify-end border-t border-gray-100 pt-6">
+                    <div className="mt-12 flex justify-center sm:justify-end border-t border-slate-100 pt-6">
                         <button
                             onClick={handleLogout}
-                            className="text-red-500 hover:text-red-700 font-semibold transition-colors"
+                            className="flex items-center gap-2 text-rose-500 hover:text-rose-600 font-bold transition-colors px-4 py-2 hover:bg-rose-50 rounded-lg"
                         >
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
+                                <path fillRule="evenodd" d="M3 4.25A2.25 2.25 0 0 1 5.25 2h5.5A2.25 2.25 0 0 1 13 4.25v2a.75.75 0 0 1-1.5 0v-2a.75.75 0 0 0-.75-.75h-5.5a.75.75 0 0 0-.75.75v11.5c0 .414.336.75.75.75h5.5a.75.75 0 0 0 .75-.75v-2a.75.75 0 0 1 1.5 0v2A2.25 2.25 0 0 1 10.75 18h-5.5A2.25 2.25 0 0 1 3 15.75V4.25Z" clipRule="evenodd" />
+                                <path fillRule="evenodd" d="M19 10a.75.75 0 0 0-.75-.75H8.704l1.048-1.048a.75.75 0 1 0-1.06-1.06l-2.25 2.25a.75.75 0 0 0 0 1.06l2.25 2.25a.75.75 0 1 0 1.06-1.06l-1.048-1.048h9.546A.75.75 0 0 0 19 10Z" clipRule="evenodd" />
+                            </svg>
                             Keluar dari Akun
                         </button>
                     </div>
