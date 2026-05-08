@@ -1,8 +1,9 @@
-import { Inter } from "next/font/google";
+import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import Navbar from "./components/Navbar";
+import { Toaster } from "react-hot-toast";
 
-const inter = Inter({ subsets: ["latin"] });
+const plusJakartaSans = Plus_Jakarta_Sans({ subsets: ["latin"] });
 
 export const metadata = {
   title: "Jastip JSON",
@@ -12,10 +13,10 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
       <html lang="id">
-      <body className={inter.className}>
+      <body className={plusJakartaSans.className}>
+      <Toaster position="bottom-right" />
       <Navbar />
 
-      {/* children adalah isi dari masing-masing page (login, register, profile) */}
       <main>
         {children}
       </main>

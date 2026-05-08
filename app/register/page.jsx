@@ -1,119 +1,140 @@
 // app/register/page.jsx
-'use client'; // Wajib untuk interaksi user
+'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import axiosInstance from '@/utils/axios'; // Import axios instance yang hardcode port 8081
-import Link from 'next/link'; // Untuk navigasi balik ke login tanpa reload
+import { register } from '@/utils/auth-api';
+import { getTokenCookie, parseApiError } from '@/utils/axios';
+import Link from 'next/link';
+import toast from 'react-hot-toast';
+
+const EMPTY_ERRORS = { name: '', email: '', password: '' };
+
+function FieldError({ msg }) {
+    if (!msg) return null;
+    return <p className="mt-1.5 text-xs font-medium text-rose-600">{msg}</p>;
+}
+
+function inputCls(hasErr) {
+    return `w-full rounded-md border px-4 py-3 text-slate-950 outline-none transition-colors placeholder:text-slate-300 focus:ring-4 ${
+        hasErr
+            ? 'border-rose-400 bg-rose-50/30 focus:border-rose-500 focus:ring-rose-100'
+            : 'border-slate-300 focus:border-blue-500 focus:ring-blue-100'
+    }`;
+}
 
 export default function RegisterPage() {
-    const [name, setName] = useState(''); // Tambahan field Nama
+    const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [error, setError] = useState('');
+    const [errors, setErrors] = useState(EMPTY_ERRORS);
+    const [globalError, setGlobalError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-    const [isSuccess, setIsSuccess] = useState(false); // State baru untuk tanda sukses
+    const [isSuccess, setIsSuccess] = useState(false);
 
     const router = useRouter();
+
+    useEffect(() => {
+        if (getTokenCookie()) router.replace('/home');
+    }, [router]);
 
     const handleRegister = async (e) => {
         e.preventDefault();
         setIsLoading(true);
-        setError('');
+        setErrors(EMPTY_ERRORS);
+        setGlobalError('');
 
         try {
-            // Tembak ke endpoint /api/auth/register di Spring Boot (port 8081)
-            // PASTIKAN nama field (name, email, password) di bawah ini
-            // persis sama dengan RegisterRequest DTO di Spring Boot-mu!
-            await axiosInstance.post('/api/auth/register', {
-                name: name,
-                email: email,
-                password: password
-            });
-
-            // Jika sukses, ubah state
+            await register({ name, email, password });
             setIsSuccess(true);
-            alert('Pendaftaran Berhasil! Silakan Login.');
-
-            // Redirect user ke halaman login setelah 1 detik
-            setTimeout(() => {
-                router.push('/login');
-            }, 1000);
-
+            toast.success('Berhasil membuat akun! Silakan Login.');
+            setTimeout(() => router.push('/login'), 1000);
         } catch (err) {
-            console.error(err);
-            // Menangkap pesan error dari backend (misal: Email sudah terdaftar)
-            setError(err.response?.data?.message || 'Gagal mendaftar. Periksa kembali data Anda.');
+            const { fieldErrors, globalMessage } = parseApiError(err);
+            setErrors({ ...EMPTY_ERRORS, ...fieldErrors });
+            if (globalMessage) {
+                setGlobalError(globalMessage);
+                toast.error(globalMessage);
+            }
         } finally {
             setIsLoading(false);
         }
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
-            <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md border border-gray-100">
-                <h2 className="text-3xl font-extrabold mb-2 text-center text-blue-900">Bergabung JSON</h2>
-                <p className="text-gray-500 text-center mb-8 text-sm">Lengkapi data untuk mulai jastip.</p>
+        <div className="min-h-[calc(100vh-72px)] px-4 py-10 sm:px-6 lg:px-8">
+            <div className="mx-auto max-w-2xl">
+                <section className="rounded-lg border border-blue-100 bg-white p-8 shadow-[0_18px_45px_rgba(24,51,122,0.08)] sm:p-10">
+                    <h2 className="text-center text-4xl font-black text-slate-950">Bergabung JSON</h2>
+                    <p className="mt-3 text-center text-sm leading-6 text-slate-500">Buat akun baru untuk mulai menggunakan aplikasi.</p>
 
-                {error && <div className="bg-red-100 text-red-700 p-3 rounded mb-5 text-sm font-medium">{error}</div>}
+                    {globalError && (
+                        <div className="mt-6 rounded-md border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700">
+                            {globalError}
+                        </div>
+                    )}
+                    {isSuccess && (
+                        <div className="mt-6 rounded-md border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700">
+                            Pendaftaran berhasil! Mengalihkan ke halaman Login...
+                        </div>
+                    )}
 
-                {isSuccess && <div className="bg-green-100 text-green-700 p-3 rounded mb-5 text-sm font-medium">Pendaftaran berhasil! Mengalihkan ke halaman Login...</div>}
+                    <form onSubmit={handleRegister} className="mt-8 space-y-5">
+                        <div>
+                            <label className="mb-2 block text-sm font-semibold text-slate-700">Nama Lengkap</label>
+                            <input
+                                type="text"
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
+                                required
+                                placeholder="johndoe"
+                                className={inputCls(!!errors.name)}
+                            />
+                            <FieldError msg={errors.name} />
+                        </div>
 
-                <form onSubmit={handleRegister} className="space-y-5">
-                    {/* Field Nama Lengkap */}
-                    <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-1">Nama Lengkap</label>
-                        <input
-                            type="text"
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            required
-                            placeholder="Contoh: Marvel Aris"
-                            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black placeholder:text-gray-300"
-                        />
-                    </div>
+                        <div>
+                            <label className="mb-2 block text-sm font-semibold text-slate-700">Email</label>
+                            <input
+                                type="email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                required
+                                placeholder="john@mail.com"
+                                className={inputCls(!!errors.email)}
+                            />
+                            <FieldError msg={errors.email} />
+                        </div>
 
-                    {/* Field Email */}
-                    <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-1">Email Jastip</label>
-                        <input
-                            type="email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            required
-                            placeholder="marvel@ui.ac.id"
-                            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black placeholder:text-gray-300"
-                        />
-                    </div>
+                        <div>
+                            <label className="mb-2 block text-sm font-semibold text-slate-700">Password</label>
+                            <input
+                                type="password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                required
+                                placeholder="Min. 8 karakter"
+                                className={inputCls(!!errors.password)}
+                            />
+                            <FieldError msg={errors.password} />
+                        </div>
 
-                    {/* Field Password */}
-                    <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-1">Password</label>
-                        <input
-                            type="password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            required
-                            placeholder="Min. 8 karakter"
-                            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black placeholder:text-gray-300"
-                        />
-                    </div>
+                        <button
+                            type="submit"
+                            disabled={isLoading}
+                            className="w-full rounded-md bg-blue-700 px-4 py-3 text-base font-bold text-white shadow-[0_12px_24px_rgba(33,73,216,0.2)] transition-all hover:-translate-y-0.5 hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                            {isLoading ? 'Memproses...' : 'Daftar Sekarang'}
+                        </button>
 
-                    <button
-                        type="submit"
-                        disabled={isLoading || isSuccess}
-                        className="w-full bg-blue-700 text-white font-bold py-2.5 px-4 rounded-md hover:bg-blue-800 disabled:opacity-50 transition-colors shadow"
-                    >
-                        {isLoading ? 'Mendaftarkan...' : 'Daftar Sekarang'}
-                    </button>
-                </form>
-
-                <div className="mt-8 text-center text-sm text-gray-600 border-t pt-5">
-                    Sudah punya akun?{' '}
-                    <Link href="/login" className="font-semibold text-blue-600 hover:text-blue-800 hover:underline">
-                        Masuk di sini
-                    </Link>
-                </div>
+                        <p className="mt-6 text-center text-sm font-medium text-slate-600">
+                            Sudah punya akun?{' '}
+                            <Link href="/login" className="font-bold text-blue-600 transition-colors hover:text-blue-700 hover:underline">
+                                Masuk di sini
+                            </Link>
+                        </p>
+                    </form>
+                </section>
             </div>
         </div>
     );
