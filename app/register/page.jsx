@@ -3,7 +3,8 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import axiosInstance from '@/utils/axios';
+import { register } from '@/utils/auth-api';
+import { getTokenCookie } from '@/utils/axios';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
 
@@ -20,7 +21,7 @@ export default function RegisterPage() {
     const router = useRouter();
 
     useEffect(() => {
-        if (typeof window !== 'undefined' && localStorage.getItem('token')) {
+        if (getTokenCookie()) {
             router.replace('/home');
         }
     }, [router]);
@@ -31,11 +32,7 @@ export default function RegisterPage() {
         setError('');
 
         try {
-            await axiosInstance.post('/api/auth/register', {
-                name: name,
-                email: email,
-                password: password
-            });
+            await register({ name, email, password });
 
             setIsSuccess(true);
             toast.success('Berhasil membuat akun! Silakan Login.');

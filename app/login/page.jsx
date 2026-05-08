@@ -4,8 +4,14 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import axiosInstance from '@/utils/axios';
+import { login, getProfileMe } from '@/utils/auth-api';
+import { getTokenCookie, setTokenCookie } from '@/utils/axios';
 import toast from 'react-hot-toast';
+
+const ROLE_REDIRECT = {
+    ADMIN: '/admin/users',
+    JASTIPER: '/dashboard',
+};
 
 export default function LoginPage() {
     const [email, setEmail] = useState('');
@@ -16,7 +22,7 @@ export default function LoginPage() {
     const router = useRouter();
 
     useEffect(() => {
-        if (typeof window !== 'undefined' && localStorage.getItem('token')) {
+        if (getTokenCookie()) {
             router.replace('/home');
         }
     }, [router]);
@@ -27,19 +33,32 @@ export default function LoginPage() {
         setError('');
 
         try {
-            const response = await axiosInstance.post('/api/auth/login', {
-                email: email,
-                password: password
-            });
+            const loginRes = await login(email, password);
+            const token = loginRes.data.token;
 
-            const token = response.data.token;
-            localStorage.setItem('token', token);
+            setTokenCookie(token);
+
+            let role = null;
+            let kycStatus = null;
+            try {
+                const profileRes = await getProfileMe();
+                role = profileRes.data.role;
+                kycStatus = profileRes.data.kycStatus;
+                localStorage.setItem('userRole', role ?? '');
+                localStorage.setItem('userKycStatus', kycStatus ?? '');
+            } catch {
+                // profile fetch failed; redirect to home as fallback
+            }
+
             toast.success('Login Berhasil!');
-            router.push('/home');
+            router.push(ROLE_REDIRECT[role] ?? '/home');
         } catch (err) {
             console.error(err);
-            const errorMsg = err.response?.data?.message
-                || (err.code === 'ERR_NETWORK' ? 'Ada masalah saat menghubungi server.' : 'Gagal login. Periksa email dan password.');
+            const errorMsg =
+                err.response?.data?.message ||
+                (err.code === 'ERR_NETWORK'
+                    ? 'Ada masalah saat menghubungi server.'
+                    : 'Gagal login. Periksa email dan password.');
             setError(errorMsg);
             toast.error(errorMsg);
         } finally {
@@ -54,7 +73,11 @@ export default function LoginPage() {
                     <h2 className="text-center text-3xl font-black text-slate-950">Login JSON</h2>
                     <p className="mt-2 text-center text-sm leading-6 text-slate-500">Masuk ke akun yang sudah terdaftar.</p>
 
-                    {error && <div className="mt-6 rounded-md border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</div>}
+                    {error && (
+                        <div className="mt-6 rounded-md border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+                            {error}
+                        </div>
+                    )}
 
                     <form onSubmit={handleLogin} className="mt-8 space-y-5">
                         <div>

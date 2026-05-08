@@ -26,21 +26,12 @@ export default function AddProductPage() {
     const [success, setSuccess] = useState('');
 
     useEffect(() => {
-        const token = localStorage.getItem('token');
-        if (!token) {
-            router.push('/login');
-            return;
-        }
-
         axiosInstance.get('/api/profile/me')
             .then((res) => {
                 setUser(res.data);
             })
-            .catch((err) => {
-                if (err.response?.status === 401 || err.response?.status === 403) {
-                    localStorage.removeItem('token');
-                    router.push('/login');
-                }
+            .catch(() => {
+                router.push('/login');
             })
             .finally(() => setAuthLoading(false));
     }, [router]);

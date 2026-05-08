@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { getTokenCookie } from './axios';
 
 export default function createApiClient(baseURL, withAuth = false) {
     const client = axios.create({
@@ -10,13 +11,10 @@ export default function createApiClient(baseURL, withAuth = false) {
 
     if (withAuth) {
         client.interceptors.request.use((config) => {
-            if (typeof window !== 'undefined') {
-                const token = localStorage.getItem('token');
-                if (token) {
-                    config.headers.Authorization = `Bearer ${token}`;
-                }
+            const token = getTokenCookie();
+            if (token) {
+                config.headers.Authorization = `Bearer ${token}`;
             }
-
             return config;
         });
     }
