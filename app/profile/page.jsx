@@ -3,9 +3,12 @@
 import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { updateProfileMe, submitKYC } from '@/utils/auth-api';
+import { parseApiError } from '@/utils/axios';
 import toast from 'react-hot-toast';
 
 const KYC_INITIAL = { nik: '', fullName: '', dateOfBirth: '', address: '' };
+const EDIT_EMPTY_ERRORS = { username: '', displayName: '', phoneNumber: '', bio: '' };
+const KYC_EMPTY_ERRORS = { nik: '', fullName: '', dateOfBirth: '', address: '' };
 
 const ROLE_LABEL = { ADMIN: 'Admin', JASTIPER: 'Jastiper', TITIPERS: 'Titipers' };
 
@@ -16,18 +19,35 @@ function kycBadge(status) {
     return 'border-slate-200 bg-slate-50 text-slate-600';
 }
 
+function FieldError({ msg }) {
+    if (!msg) return null;
+    return <p className="mt-1.5 text-xs font-medium text-rose-600">{msg}</p>;
+}
+
+function inputCls(hasErr) {
+    return `w-full px-4 py-3 rounded-xl border outline-none transition-all font-medium ${
+        hasErr
+            ? 'border-rose-400 bg-rose-50/30 focus:border-rose-500 focus:ring-4 focus:ring-rose-100'
+            : 'border-slate-200 bg-white focus:border-[#2149d8] focus:ring-4 focus:ring-[#2149d8]/10'
+    } text-slate-800`;
+}
+
 export default function ProfilePage() {
     const { user, loading, logout, refetch } = useAuth({ requireAuth: true });
 
-    // Edit modal state
+    // Edit modal
     const [editOpen, setEditOpen] = useState(false);
     const [editForm, setEditForm] = useState({ username: '', displayName: '', phoneNumber: '', bio: '' });
+    const [editErrors, setEditErrors] = useState(EDIT_EMPTY_ERRORS);
+    const [editGlobal, setEditGlobal] = useState('');
     const [editLoading, setEditLoading] = useState(false);
 
-    // KYC form state
-    const [kycForm, setKycForm] = useState(KYC_INITIAL);
-    const [kycLoading, setKycLoading] = useState(false);
+    // KYC modal
     const [kycOpen, setKycOpen] = useState(false);
+    const [kycForm, setKycForm] = useState(KYC_INITIAL);
+    const [kycErrors, setKycErrors] = useState(KYC_EMPTY_ERRORS);
+    const [kycGlobal, setKycGlobal] = useState('');
+    const [kycLoading, setKycLoading] = useState(false);
 
     const openEdit = () => {
         setEditForm({
@@ -36,35 +56,59 @@ export default function ProfilePage() {
             phoneNumber: user?.phoneNumber ?? '',
             bio: user?.bio ?? '',
         });
+        setEditErrors(EDIT_EMPTY_ERRORS);
+        setEditGlobal('');
         setEditOpen(true);
     };
 
     const handleEditSubmit = async (e) => {
         e.preventDefault();
         setEditLoading(true);
+        setEditErrors(EDIT_EMPTY_ERRORS);
+        setEditGlobal('');
+
         try {
             await updateProfileMe(editForm);
             await refetch();
             setEditOpen(false);
             toast.success('Profil berhasil diperbarui!');
         } catch (err) {
-            toast.error(err.response?.data?.message || 'Gagal memperbarui profil.');
+            const { fieldErrors, globalMessage } = parseApiError(err);
+            setEditErrors({ ...EDIT_EMPTY_ERRORS, ...fieldErrors });
+            if (globalMessage) {
+                setEditGlobal(globalMessage);
+                toast.error(globalMessage);
+            }
         } finally {
             setEditLoading(false);
         }
     };
 
+    const openKyc = () => {
+        setKycForm(KYC_INITIAL);
+        setKycErrors(KYC_EMPTY_ERRORS);
+        setKycGlobal('');
+        setKycOpen(true);
+    };
+
     const handleKycSubmit = async (e) => {
         e.preventDefault();
         setKycLoading(true);
+        setKycErrors(KYC_EMPTY_ERRORS);
+        setKycGlobal('');
+
         try {
             await submitKYC(kycForm);
             await refetch();
             setKycOpen(false);
-            setKycForm(KYC_INITIAL);
             toast.success('Pengajuan KYC berhasil dikirim!');
         } catch (err) {
-            toast.error(err.response?.data?.message || 'Gagal mengirim KYC.');
+            const { fieldErrors, globalMessage } = parseApiError(err);
+            setKycErrors({ ...KYC_EMPTY_ERRORS, ...fieldErrors });
+            if (globalMessage) {
+                setKycGlobal(globalMessage);
+                toast.error(globalMessage);
+            }
         } finally {
             setKycLoading(false);
         }
@@ -102,7 +146,7 @@ export default function ProfilePage() {
                                 {user?.displayName?.charAt(0).toUpperCase() || user?.username?.charAt(0).toUpperCase() || '?'}
                             </div>
                         </div>
-                        <div className="absolute bottom-6 right-8 sm:right-10 flex gap-2">
+                        <div className="absolute bottom-6 right-8 sm:right-10">
                             <button
                                 onClick={openEdit}
                                 className="bg-[#ffd457] hover:bg-[#ffcf43] text-[#17254a] font-bold py-2.5 px-6 rounded-full text-sm transition-all shadow-md hover:-translate-y-0.5"
@@ -150,7 +194,7 @@ export default function ProfilePage() {
                         <div className="mt-6 flex justify-between items-center border-t border-slate-100 pt-6">
                             {canSubmitKYC && (
                                 <button
-                                    onClick={() => setKycOpen(true)}
+                                    onClick={openKyc}
                                     className="bg-[#2149d8] hover:bg-[#1a38a6] text-white font-bold py-2.5 px-6 rounded-full transition-all shadow-md text-sm"
                                 >
                                     Ajukan Verifikasi KYC
@@ -180,6 +224,13 @@ export default function ProfilePage() {
                     <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setEditOpen(false)} />
                     <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-lg p-8 border border-slate-100">
                         <h2 className="text-xl font-black text-[#17254a] mb-6">Edit Informasi Profil</h2>
+
+                        {editGlobal && (
+                            <div className="mb-5 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700">
+                                {editGlobal}
+                            </div>
+                        )}
+
                         <form onSubmit={handleEditSubmit} className="space-y-4">
                             <div className="grid sm:grid-cols-2 gap-4">
                                 <div>
@@ -188,8 +239,9 @@ export default function ProfilePage() {
                                         type="text"
                                         value={editForm.username}
                                         onChange={(e) => setEditForm({ ...editForm, username: e.target.value })}
-                                        className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:border-[#2149d8] focus:ring-4 focus:ring-[#2149d8]/10 outline-none text-slate-800 transition-all font-medium"
+                                        className={inputCls(!!editErrors.username)}
                                     />
+                                    <FieldError msg={editErrors.username} />
                                 </div>
                                 <div>
                                     <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Display Name</label>
@@ -197,8 +249,9 @@ export default function ProfilePage() {
                                         type="text"
                                         value={editForm.displayName}
                                         onChange={(e) => setEditForm({ ...editForm, displayName: e.target.value })}
-                                        className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:border-[#2149d8] focus:ring-4 focus:ring-[#2149d8]/10 outline-none text-slate-800 transition-all font-medium"
+                                        className={inputCls(!!editErrors.displayName)}
                                     />
+                                    <FieldError msg={editErrors.displayName} />
                                 </div>
                             </div>
                             <div>
@@ -207,8 +260,9 @@ export default function ProfilePage() {
                                     type="text"
                                     value={editForm.phoneNumber}
                                     onChange={(e) => setEditForm({ ...editForm, phoneNumber: e.target.value })}
-                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:border-[#2149d8] focus:ring-4 focus:ring-[#2149d8]/10 outline-none text-slate-800 transition-all font-medium"
+                                    className={inputCls(!!editErrors.phoneNumber)}
                                 />
+                                <FieldError msg={editErrors.phoneNumber} />
                             </div>
                             <div>
                                 <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Bio</label>
@@ -216,9 +270,10 @@ export default function ProfilePage() {
                                     value={editForm.bio}
                                     onChange={(e) => setEditForm({ ...editForm, bio: e.target.value })}
                                     rows={3}
-                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:border-[#2149d8] focus:ring-4 focus:ring-[#2149d8]/10 outline-none text-slate-800 transition-all font-medium resize-none"
                                     placeholder="Ceritakan sedikit tentang dirimu..."
+                                    className={inputCls(!!editErrors.bio) + ' resize-none'}
                                 />
+                                <FieldError msg={editErrors.bio} />
                             </div>
                             <div className="flex gap-3 pt-2">
                                 <button
@@ -248,7 +303,14 @@ export default function ProfilePage() {
                     <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setKycOpen(false)} />
                     <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-lg p-8 border border-slate-100">
                         <h2 className="text-xl font-black text-[#17254a] mb-2">Verifikasi Identitas (KYC)</h2>
-                        <p className="text-sm text-slate-500 mb-6">Lengkapi data identitas sesuai kartu tanda pengenal resmi Anda.</p>
+                        <p className="text-sm text-slate-500 mb-5">Lengkapi data identitas sesuai kartu tanda pengenal resmi Anda.</p>
+
+                        {kycGlobal && (
+                            <div className="mb-5 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700">
+                                {kycGlobal}
+                            </div>
+                        )}
+
                         <form onSubmit={handleKycSubmit} className="space-y-4">
                             <div>
                                 <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">NIK <span className="text-red-500">*</span></label>
@@ -259,8 +321,9 @@ export default function ProfilePage() {
                                     required
                                     maxLength={16}
                                     placeholder="16 digit NIK"
-                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#2149d8] focus:ring-4 focus:ring-[#2149d8]/10 outline-none text-slate-800 transition-all font-medium"
+                                    className={inputCls(!!kycErrors.nik)}
                                 />
+                                <FieldError msg={kycErrors.nik} />
                             </div>
                             <div>
                                 <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Nama Lengkap <span className="text-red-500">*</span></label>
@@ -270,8 +333,9 @@ export default function ProfilePage() {
                                     onChange={(e) => setKycForm({ ...kycForm, fullName: e.target.value })}
                                     required
                                     placeholder="Sesuai KTP"
-                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#2149d8] focus:ring-4 focus:ring-[#2149d8]/10 outline-none text-slate-800 transition-all font-medium"
+                                    className={inputCls(!!kycErrors.fullName)}
                                 />
+                                <FieldError msg={kycErrors.fullName} />
                             </div>
                             <div>
                                 <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Tanggal Lahir <span className="text-red-500">*</span></label>
@@ -280,8 +344,9 @@ export default function ProfilePage() {
                                     value={kycForm.dateOfBirth}
                                     onChange={(e) => setKycForm({ ...kycForm, dateOfBirth: e.target.value })}
                                     required
-                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#2149d8] focus:ring-4 focus:ring-[#2149d8]/10 outline-none text-slate-800 transition-all font-medium"
+                                    className={inputCls(!!kycErrors.dateOfBirth)}
                                 />
+                                <FieldError msg={kycErrors.dateOfBirth} />
                             </div>
                             <div>
                                 <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Alamat <span className="text-red-500">*</span></label>
@@ -291,8 +356,9 @@ export default function ProfilePage() {
                                     required
                                     rows={2}
                                     placeholder="Alamat sesuai KTP"
-                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#2149d8] focus:ring-4 focus:ring-[#2149d8]/10 outline-none text-slate-800 transition-all font-medium resize-none"
+                                    className={inputCls(!!kycErrors.address) + ' resize-none'}
                                 />
+                                <FieldError msg={kycErrors.address} />
                             </div>
                             <div className="flex gap-3 pt-2">
                                 <button

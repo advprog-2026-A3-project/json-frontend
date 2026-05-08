@@ -1,51 +1,61 @@
 // app/register/page.jsx
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { register } from '@/utils/auth-api';
-import { getTokenCookie } from '@/utils/axios';
+import { getTokenCookie, parseApiError } from '@/utils/axios';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
 
-import { useEffect } from 'react';
+const EMPTY_ERRORS = { name: '', email: '', password: '' };
+
+function FieldError({ msg }) {
+    if (!msg) return null;
+    return <p className="mt-1.5 text-xs font-medium text-rose-600">{msg}</p>;
+}
+
+function inputCls(hasErr) {
+    return `w-full rounded-md border px-4 py-3 text-slate-950 outline-none transition-colors placeholder:text-slate-300 focus:ring-4 ${
+        hasErr
+            ? 'border-rose-400 bg-rose-50/30 focus:border-rose-500 focus:ring-rose-100'
+            : 'border-slate-300 focus:border-blue-500 focus:ring-blue-100'
+    }`;
+}
 
 export default function RegisterPage() {
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [error, setError] = useState('');
+    const [errors, setErrors] = useState(EMPTY_ERRORS);
+    const [globalError, setGlobalError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [isSuccess, setIsSuccess] = useState(false);
 
     const router = useRouter();
 
     useEffect(() => {
-        if (getTokenCookie()) {
-            router.replace('/home');
-        }
+        if (getTokenCookie()) router.replace('/home');
     }, [router]);
 
     const handleRegister = async (e) => {
         e.preventDefault();
         setIsLoading(true);
-        setError('');
+        setErrors(EMPTY_ERRORS);
+        setGlobalError('');
 
         try {
             await register({ name, email, password });
-
             setIsSuccess(true);
             toast.success('Berhasil membuat akun! Silakan Login.');
-
-            setTimeout(() => {
-                router.push('/login');
-            }, 1000);
+            setTimeout(() => router.push('/login'), 1000);
         } catch (err) {
-            console.error(err);
-            const errorMsg = err.response?.data?.message
-                || (err.code === 'ERR_NETWORK' ? 'Ada masalah saat menghubungi server.' : 'Gagal mendaftar. Periksa kembali data Anda.');
-            setError(errorMsg);
-            toast.error(errorMsg);
+            const { fieldErrors, globalMessage } = parseApiError(err);
+            setErrors({ ...EMPTY_ERRORS, ...fieldErrors });
+            if (globalMessage) {
+                setGlobalError(globalMessage);
+                toast.error(globalMessage);
+            }
         } finally {
             setIsLoading(false);
         }
@@ -58,8 +68,16 @@ export default function RegisterPage() {
                     <h2 className="text-center text-4xl font-black text-slate-950">Bergabung JSON</h2>
                     <p className="mt-3 text-center text-sm leading-6 text-slate-500">Buat akun baru untuk mulai menggunakan aplikasi.</p>
 
-                    {error && <div className="mt-6 rounded-md border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700">{error}</div>}
-                    {isSuccess && <div className="mt-6 rounded-md border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700">Pendaftaran berhasil! Mengalihkan ke halaman Login...</div>}
+                    {globalError && (
+                        <div className="mt-6 rounded-md border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700">
+                            {globalError}
+                        </div>
+                    )}
+                    {isSuccess && (
+                        <div className="mt-6 rounded-md border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700">
+                            Pendaftaran berhasil! Mengalihkan ke halaman Login...
+                        </div>
+                    )}
 
                     <form onSubmit={handleRegister} className="mt-8 space-y-5">
                         <div>
@@ -70,8 +88,9 @@ export default function RegisterPage() {
                                 onChange={(e) => setName(e.target.value)}
                                 required
                                 placeholder="johndoe"
-                                className="w-full rounded-md border border-slate-300 px-4 py-3 text-slate-950 outline-none transition-colors placeholder:text-slate-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                                className={inputCls(!!errors.name)}
                             />
+                            <FieldError msg={errors.name} />
                         </div>
 
                         <div>
@@ -82,8 +101,9 @@ export default function RegisterPage() {
                                 onChange={(e) => setEmail(e.target.value)}
                                 required
                                 placeholder="john@mail.com"
-                                className="w-full rounded-md border border-slate-300 px-4 py-3 text-slate-950 outline-none transition-colors placeholder:text-slate-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                                className={inputCls(!!errors.email)}
                             />
+                            <FieldError msg={errors.email} />
                         </div>
 
                         <div>
@@ -94,8 +114,9 @@ export default function RegisterPage() {
                                 onChange={(e) => setPassword(e.target.value)}
                                 required
                                 placeholder="Min. 8 karakter"
-                                className="w-full rounded-md border border-slate-300 px-4 py-3 text-slate-950 outline-none transition-colors placeholder:text-slate-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                                className={inputCls(!!errors.password)}
                             />
+                            <FieldError msg={errors.password} />
                         </div>
 
                         <button

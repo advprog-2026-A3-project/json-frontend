@@ -36,4 +36,48 @@ axiosInstance.interceptors.response.use(
     }
 );
 
+/**
+ * Normalizes any Axios error into { fieldErrors, globalMessage }.
+ *
+ * Backend shapes handled:
+ *   { errors: { field: "msg" } }           — object map
+ *   { errors: [{ field, message }] }        — array (Spring / Bean Validation)
+ *   { errors: [{ field, defaultMessage }] } — array (Spring BindingResult)
+ *   { message: "..." }                      — global message only
+ *   { error: "..." }                        — fallback key
+ */
+export function parseApiError(error) {
+    if (!error.response) {
+        return {
+            fieldErrors: {},
+            globalMessage:
+                error.code === 'ERR_NETWORK'
+                    ? 'Ada masalah saat menghubungi server.'
+                    : 'Internal Server Error',
+        };
+    }
+
+    const { data } = error.response;
+    const fieldErrors = {};
+
+    if (data?.errors) {
+        if (Array.isArray(data.errors)) {
+            for (const e of data.errors) {
+                const field = e.field ?? e.param;
+                const msg = e.message ?? e.defaultMessage ?? e.msg;
+                if (field && msg) fieldErrors[field] = msg;
+            }
+        } else if (typeof data.errors === 'object') {
+            Object.assign(fieldErrors, data.errors);
+        }
+    }
+
+    const globalMessage =
+        data?.message ||
+        data?.error ||
+        (Object.keys(fieldErrors).length === 0 ? 'Internal Server Error' : '');
+
+    return { fieldErrors, globalMessage };
+}
+
 export default axiosInstance;
