@@ -1024,6 +1024,16 @@ sequenceDiagram
 
 ---
 
+## Container Diagram Order Service
+<img width="7815" height="5205" alt="Container Diagram" src="https://github.com/user-attachments/assets/c3fec2fc-8c7f-4bf9-b3e5-4bd8481b152d" />
+
+## Code Diagram Order Service:
+<img width="7510" height="4905" alt="Untitled diagram-2026-05-12-134856" src="https://github.com/user-attachments/assets/86dfd3ab-c32d-44cd-a9d6-295e59fb7986" />
+<img width="1210" height="2835" alt="Untitled diagram-2026-05-12-134914" src="https://github.com/user-attachments/assets/f3fe7c38-dc3b-4806-bc7e-8d11e5c4a610" />
+<img width="2173" height="965" alt="Untitled diagram-2026-05-12-135022" src="https://github.com/user-attachments/assets/da3228b3-1696-46e5-860b-460ba14f5a43" />
+<img width="1654" height="1650" alt="Untitled diagram-2026-05-12-135009" src="https://github.com/user-attachments/assets/eb404657-b566-481c-bf9c-4b75e603e025" />
+<img width="2055" height="2130" alt="Untitled diagram-2026-05-12-134956" src="https://github.com/user-attachments/assets/efa85d0c-f2a6-4496-8dad-f14eb2efbcbd" />
+
 ## Ringkasan Arsitektur Modul Auth & Profile
 
 | Aspek | Detail |
