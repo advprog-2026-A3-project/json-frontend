@@ -616,3 +616,421 @@ Perubahan utama yang dijelaskan dalam diagram ini meliputi:
 | Service Boundary | Logic stok tetap berada di Inventory Service, sedangkan Order Service hanya melakukan orchestration |
 
 Dengan pendekatan ini, integrasi antarservice menjadi lebih jelas. Order Service bertugas mengatur proses order dan checkout, sedangkan Inventory Service tetap menjadi source of truth untuk data produk dan stok.
+
+# Modul Auth & Profile — C4 Level 3 & Code Diagrams
+
+## PIC: Modul Auth & Profile | Proyek: JaStip Online Nasional (JSON)
+
+> Modul ini bukan sekadar CRUD — ia menangani **keamanan berbasis JWT**, **verifikasi identitas (KYC)**, dan **alur kerja approval** yang ketat untuk menjaga integritas platform.
+
+---
+
+## 1. Component Diagram (C4 Level 3) — Auth & Profile API
+
+```mermaid
+flowchart TD
+
+    client["🌐 <b>Web Application</b><br/><i>Next.js</i><br/><br/>Mengirim request Login,<br/>Register, dan KYC"]
+
+    subgraph boundary["⚙️ API Application — Spring Boot : Auth & Profile Module"]
+        direction TB
+
+        controller["<b>AuthController</b><br/><i>REST Controller</i><br/><br/>Menerima HTTP request<br/>untuk /api/auth/login,<br/>/api/auth/register,<br/>dan /api/auth/refresh"]
+
+        profile_ctrl["<b>ProfileController</b><br/><i>REST Controller</i><br/><br/>Menerima request untuk<br/>/api/profile dan<br/>/api/kyc/submit"]
+
+        auth_service["<b>AuthService</b><br/><i>Service Layer</i><br/><br/>Logika bisnis autentikasi:<br/>validasi kredensial,<br/>generate token pair,<br/>handle refresh token"]
+
+        user_details["<b>UserDetailsService</b><br/><i>Spring Security</i><br/><br/>Implementasi UserDetailsService<br/>untuk load user by email<br/>dari database"]
+
+        profile_service["<b>UserProfileService</b><br/><i>Service Layer</i><br/><br/>autoGenerateUsername,<br/>applyForKYC,<br/>adminVerifyJastiper"]
+
+        jwt_utils["<b>JwtUtils</b><br/><i>Utility Component</i><br/><br/>Generate, parse, dan<br/>validasi JWT token.<br/>Mengelola secret key<br/>dan expiration time"]
+
+        jwt_filter["<b>JwtAuthenticationFilter</b><br/><i>OncePerRequestFilter</i><br/><br/>Intercept setiap request,<br/>ekstrak Bearer token,<br/>set SecurityContext"]
+
+        user_repo["<b>UserRepository</b><br/><i>JPA Repository</i><br/><br/>Interface ke tabel users:<br/>findByEmail, existsByEmail"]
+
+        kyc_repo["<b>KYCDetailRepository</b><br/><i>JPA Repository</i><br/><br/>Interface ke tabel kyc_details:<br/>findByUserId, save"]
+    end
+
+    database[("🗄️ <b>PostgreSQL</b><br/><i>Supabase</i><br/><br/>Tabel: users, roles,<br/>kyc_details")]
+
+    client -- "POST /api/auth/** <br/> JSON over HTTPS" --> controller
+    client -- "POST /api/profile/** <br/> JSON over HTTPS" --> profile_ctrl
+    client -- "Bearer Token <br/> di setiap request" -.-> jwt_filter
+
+    controller -- "delegates" --> auth_service
+    profile_ctrl -- "delegates" --> profile_service
+    auth_service -- "loadUserByUsername" --> user_details
+    auth_service -- "generateToken / validateToken" --> jwt_utils
+    profile_service -- "query / save KYC" --> kyc_repo
+    jwt_filter -- "validateToken" --> jwt_utils
+    jwt_filter -- "loadUserByUsername" --> user_details
+    user_details -- "findByEmail" --> user_repo
+    auth_service -- "save new user" --> user_repo
+    user_repo -- "JDBC / SQL" --> database
+    kyc_repo -- "JDBC / SQL" --> database
+
+    classDef external fill:#08427B,stroke:#052E56,color:#fff,stroke-width:2px
+    classDef ctrl fill:#3B82F6,stroke:#2563EB,color:#fff,stroke-width:2px
+    classDef svc fill:#10B981,stroke:#059669,color:#fff,stroke-width:2px
+    classDef util fill:#F59E0B,stroke:#D97706,color:#fff,stroke-width:2px
+    classDef repo fill:#8B5CF6,stroke:#7C3AED,color:#fff,stroke-width:2px
+    classDef db fill:#6B7280,stroke:#4B5563,color:#fff,stroke-width:2px
+    classDef boundaryStyle fill:#F8FAFC,stroke:#334155,stroke-width:2px,stroke-dasharray:5 5,color:#334155
+
+    class client external
+    class controller,profile_ctrl ctrl
+    class auth_service,user_details,profile_service svc
+    class jwt_utils,jwt_filter util
+    class user_repo,kyc_repo repo
+    class database db
+    class boundary boundaryStyle
+```
+
+### Legenda Warna
+| Warna | Kategori | Komponen |
+|---|---|---|
+| 🔵 Biru | Controller | AuthController, ProfileController |
+| 🟢 Hijau | Service | AuthService, UserDetailsService, UserProfileService |
+| 🟡 Kuning | Security / Utility | JwtUtils, JwtAuthenticationFilter |
+| 🟣 Ungu | Repository | UserRepository, KYCDetailRepository |
+| ⚫ Abu-abu | Database | PostgreSQL (Supabase) |
+
+---
+
+## 2. Code Diagram 1 — Class Diagram: User Identity
+
+```mermaid
+classDiagram
+    direction LR
+
+    class User {
+        -Long id
+        -String email
+        -String password
+        -String username
+        -String fullName
+        -String phoneNumber
+        -String profileImageUrl
+        -UserStatus status
+        -LocalDateTime createdAt
+        -LocalDateTime updatedAt
+        +getAuthorities() Collection~GrantedAuthority~
+    }
+
+    class Role {
+        -Long id
+        -ERole name
+        +getName() ERole
+    }
+
+    class ERole {
+        <<enumeration>>
+        ROLE_TITIPERS
+        ROLE_JASTIPER
+        ROLE_ADMIN
+    }
+
+    class UserStatus {
+        <<enumeration>>
+        TITIPERS
+        PENDING_JASTIPER
+        JASTIPER
+        SUSPENDED
+    }
+
+    class KYCDetail {
+        -Long id
+        -String ktpNumber
+        -String ktpImageUrl
+        -String selfieWithKtpUrl
+        -String address
+        -KYCStatus verificationStatus
+        -String rejectionReason
+        -LocalDateTime submittedAt
+        -LocalDateTime verifiedAt
+    }
+
+    class KYCStatus {
+        <<enumeration>>
+        PENDING
+        APPROVED
+        REJECTED
+    }
+
+    User "1" --> "1" KYCDetail : has (One-to-One)
+    User "*" --> "*" Role : has (Many-to-Many)
+    User --> UserStatus : uses
+    Role --> ERole : defines
+    KYCDetail --> KYCStatus : uses
+
+    note for User "Setiap user baru otomatis\nberstatus TITIPERS.\nUntuk menjadi JASTIPER,\nharus submit KYC."
+    note for KYCDetail "Data KYC disimpan terpisah\nuntuk keamanan data sensitif.\nRelasi One-to-One dengan User."
+```
+
+### Penjelasan Alur Status User
+```
+TITIPERS ──[submit KYC]──► PENDING_JASTIPER ──[admin approve]──► JASTIPER
+                                              ──[admin reject]──► TITIPERS (bisa submit ulang)
+```
+
+---
+
+## 3. Code Diagram 2 — Class Diagram: Security Flow (JWT)
+
+```mermaid
+classDiagram
+    direction TB
+
+    class WebSecurityConfig {
+        -JwtAuthenticationFilter jwtFilter
+        -JwtEntryPoint jwtEntryPoint
+        -UserDetailsServiceImpl userDetailsService
+        +securityFilterChain(HttpSecurity) SecurityFilterChain
+        +passwordEncoder() PasswordEncoder
+        +authenticationManager(AuthConfig) AuthenticationManager
+    }
+
+    class JwtAuthenticationFilter {
+        -JwtUtils jwtUtils
+        -UserDetailsServiceImpl userDetailsService
+        +doFilterInternal(request, response, filterChain) void
+        -extractTokenFromHeader(request) String
+    }
+
+    class JwtEntryPoint {
+        +commence(request, response, authException) void
+    }
+
+    class JwtUtils {
+        -String jwtSecret
+        -int jwtExpirationMs
+        -int refreshExpirationMs
+        +generateAccessToken(UserDetails) String
+        +generateRefreshToken(UserDetails) String
+        +extractUsername(String token) String
+        +validateToken(String token) boolean
+        -buildToken(claims, expiration) String
+    }
+
+    class UserDetailsServiceImpl {
+        -UserRepository userRepository
+        +loadUserByUsername(String email) UserDetails
+    }
+
+    class OncePerRequestFilter {
+        <<abstract>>
+        +doFilterInternal()*
+    }
+
+    class AuthenticationEntryPoint {
+        <<interface>>
+        +commence()*
+    }
+
+    JwtAuthenticationFilter --|> OncePerRequestFilter : extends
+    JwtEntryPoint ..|> AuthenticationEntryPoint : implements
+    WebSecurityConfig --> JwtAuthenticationFilter : registers in filter chain
+    WebSecurityConfig --> JwtEntryPoint : handles 401 Unauthorized
+    WebSecurityConfig --> UserDetailsServiceImpl : configures auth provider
+    JwtAuthenticationFilter --> JwtUtils : validates token
+    JwtAuthenticationFilter --> UserDetailsServiceImpl : loads user from token
+
+    note for JwtAuthenticationFilter "Intercept SETIAP HTTP request.\n1. Cek header Authorization\n2. Ekstrak Bearer token\n3. Validasi via JwtUtils\n4. Set SecurityContextHolder"
+    note for JwtEntryPoint "Dipanggil otomatis saat\nrequest TIDAK memiliki\ntoken yang valid.\nReturn 401 JSON response."
+```
+
+### Alur Filter Chain
+```
+HTTP Request
+  │
+  ▼
+JwtAuthenticationFilter
+  ├─ Token valid? ──► Set SecurityContext ──► Controller (200 OK)
+  └─ Token invalid / kosong?
+       └─► JwtEntryPoint ──► 401 Unauthorized JSON Response
+```
+
+---
+
+## 4. Code Diagram 3 — Class Diagram: Business Logic (Profile & KYC)
+
+```mermaid
+classDiagram
+    direction TB
+
+    class UserProfileService {
+        -UserRepository userRepository
+        -KYCDetailRepository kycDetailRepository
+        +autoGenerateUsername(String email) String
+        +getProfile(Long userId) UserProfileDTO
+        +updateProfile(Long userId, UpdateProfileRequest) UserProfileDTO
+        +applyForKYC(Long userId, KYCSubmitRequest) KYCDetail
+        +adminVerifyJastiper(Long userId, String status, String reason) User
+        -validateKYCData(KYCSubmitRequest) void
+        -generateUniqueUsername(String base) String
+    }
+
+    class KYCSubmitRequest {
+        -String ktpNumber
+        -String address
+        -MultipartFile ktpImage
+        -MultipartFile selfieWithKtp
+        +validate() boolean
+    }
+
+    class UpdateProfileRequest {
+        -String fullName
+        -String phoneNumber
+        -MultipartFile profileImage
+    }
+
+    class UserProfileDTO {
+        -Long id
+        -String email
+        -String username
+        -String fullName
+        -String phoneNumber
+        -String profileImageUrl
+        -UserStatus status
+        -KYCDetailDTO kycDetail
+    }
+
+    class KYCDetailDTO {
+        -KYCStatus verificationStatus
+        -LocalDateTime submittedAt
+        -LocalDateTime verifiedAt
+        -String rejectionReason
+    }
+
+    class UserRepository {
+        <<interface>>
+        +findByEmail(String) Optional~User~
+        +findByUsername(String) Optional~User~
+        +existsByEmail(String) boolean
+        +existsByUsername(String) boolean
+    }
+
+    class KYCDetailRepository {
+        <<interface>>
+        +findByUserId(Long) Optional~KYCDetail~
+    }
+
+    UserProfileService --> UserRepository : queries user data
+    UserProfileService --> KYCDetailRepository : queries KYC data
+    UserProfileService --> KYCSubmitRequest : receives input
+    UserProfileService --> UpdateProfileRequest : receives input
+    UserProfileService --> UserProfileDTO : returns response
+    UserProfileDTO --> KYCDetailDTO : contains
+
+    note for UserProfileService "autoGenerateUsername:\nemail 'budi@mail.com' → 'budi'\njika taken → 'budi_123' (random suffix)\n\napplyForKYC:\nvalidasi data → simpan → set status PENDING\n\nadminVerifyJastiper:\nAPPROVED → status jadi JASTIPER\nREJECTED → status kembali TITIPERS"
+```
+
+---
+
+## 5. Code Diagram 4 — Sequence Diagram: Alur KYC Process
+
+```mermaid
+sequenceDiagram
+    autonumber
+
+    actor User as 🧑 User (Titipers)
+    participant WA as 🌐 Web App<br/>(Next.js)
+    participant PC as ProfileController
+    participant PS as UserProfileService
+    participant UR as UserRepository
+    participant KR as KYCDetailRepository
+    participant DB as 🗄️ PostgreSQL<br/>(Supabase)
+
+    actor Admin as 🧑‍💼 Admin
+
+    Note over User, DB: === FASE 1: User Submit KYC ===
+
+    User ->>+ WA: Isi form KYC (KTP, selfie, alamat)
+    WA ->>+ PC: POST /api/kyc/submit<br/>[multipart/form-data + Bearer Token]
+    PC ->> PC: Validasi token via JwtFilter
+    PC ->>+ PS: applyForKYC(userId, kycData)
+
+    PS ->>+ UR: findById(userId)
+    UR ->>+ DB: SELECT * FROM users WHERE id = ?
+    DB -->>- UR: User entity
+    UR -->>- PS: User (status: TITIPERS)
+
+    PS ->> PS: validateKYCData(kycData)
+
+    alt Data KYC tidak valid
+        PS -->> PC: throw BadRequestException
+        PC -->> WA: 400 Bad Request
+        WA -->> User: ❌ Tampilkan error validasi
+    end
+
+    PS ->>+ KR: save(kycDetail)
+    KR ->>+ DB: INSERT INTO kyc_details (...)
+    DB -->>- KR: KYCDetail saved
+    KR -->>- PS: KYCDetail entity
+
+    PS ->>+ UR: save(user.setStatus PENDING_JASTIPER)
+    UR ->>+ DB: UPDATE users SET status = 'PENDING_JASTIPER'
+    DB -->>- UR: Updated
+    UR -->>- PS: User updated
+
+    PS -->>- PC: KYCDetail response
+    PC -->>- WA: 200 OK + KYC submitted
+    WA -->>- User: ✅ KYC berhasil disubmit, menunggu verifikasi
+
+    Note over User, DB: === FASE 2: Admin Verifikasi KYC ===
+
+    Admin ->>+ WA: Buka dashboard, lihat daftar KYC pending
+    WA ->>+ PC: GET /api/admin/kyc/pending<br/>[Bearer Token - ROLE_ADMIN]
+    PC ->>+ PS: getPendingKYCList()
+    PS ->>+ KR: findByVerificationStatus(PENDING)
+    KR ->>+ DB: SELECT * FROM kyc_details WHERE status = 'PENDING'
+    DB -->>- KR: List of KYCDetail
+    KR -->>- PS: List KYCDetail
+    PS -->>- PC: List KYCDetailDTO
+    PC -->>- WA: 200 OK + pending list
+    WA -->>- Admin: Tampilkan daftar KYC pending
+
+    Admin ->>+ WA: Klik Approve / Reject untuk user tertentu
+    WA ->>+ PC: PUT /api/admin/kyc/verify/{userId}<br/>[status=APPROVED / REJECTED, reason]
+    PC ->>+ PS: adminVerifyJastiper(userId, status, reason)
+
+    alt Status = APPROVED
+        PS ->>+ UR: save(user.setStatus JASTIPER)
+        UR ->>+ DB: UPDATE users SET status = 'JASTIPER'
+        DB -->>- UR: Updated
+        UR -->>- PS: User (JASTIPER)
+        PS ->>+ KR: save(kyc.setStatus APPROVED, verifiedAt)
+        KR ->>+ DB: UPDATE kyc_details SET status = 'APPROVED'
+        DB -->>- KR: Updated
+        KR -->>- PS: KYCDetail updated
+    else Status = REJECTED
+        PS ->>+ UR: save(user.setStatus TITIPERS)
+        UR ->>+ DB: UPDATE users SET status = 'TITIPERS'
+        DB -->>- UR: Updated
+        UR -->>- PS: User (TITIPERS)
+        PS ->>+ KR: save(kyc.setStatus REJECTED, reason)
+        KR ->>+ DB: UPDATE kyc_details SET status = 'REJECTED'
+        DB -->>- KR: Updated
+        KR -->>- PS: KYCDetail updated
+    end
+
+    PS -->>- PC: Updated User response
+    PC -->>- WA: 200 OK + verification result
+    WA -->>- Admin: ✅ Verifikasi berhasil diproses
+```
+
+---
+
+## Ringkasan Arsitektur Modul Auth & Profile
+
+| Aspek | Detail |
+|---|---|
+| **Autentikasi** | JWT-based stateless auth dengan access token + refresh token |
+| **Otorisasi** | Role-based: TITIPERS, JASTIPER, ADMIN via Spring Security |
+| **Registrasi** | Auto-generate username dari email, default role TITIPERS |
+| **KYC Workflow** | Submit → Pending → Admin Review → Approved/Rejected |
+| **Security Filter** | Custom `JwtAuthenticationFilter` extends `OncePerRequestFilter` |
+| **Data Layer** | JPA Repository pattern dengan PostgreSQL (Supabase) |
