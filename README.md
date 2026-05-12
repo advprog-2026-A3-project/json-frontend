@@ -1044,3 +1044,29 @@ sequenceDiagram
 | **KYC Workflow** | Submit → Pending → Admin Review → Approved/Rejected |
 | **Security Filter** | Custom `JwtAuthenticationFilter` extends `OncePerRequestFilter` |
 | **Data Layer** | JPA Repository pattern dengan PostgreSQL (Supabase) |
+
+---
+
+# Individual Work - Samuel Indriano
+
+## Scope
+
+Pada tugas individual ini, saya mengambil bagian `json-voucher-service`. Diagram-diagram berikut merupakan pengembangan dari container diagram kelompok, dengan fokus pada component diagram dan code diagram untuk alur utama voucher.
+
+## Component Diagram - `json-voucher-service`
+
+![Component Diagram - json-voucher-service](docs/module-9/samuel/component-diagram-json-voucher-service.svg)
+
+Component diagram ini menunjukkan struktur utama di dalam `json-voucher-service`. Alur dimulai dari Front End ke `VoucherController`, lalu diproses oleh `VoucherService`. Service ini menggunakan `VoucherReadRepository` dan `VoucherWriteRepository`, menjalankan aturan bisnis melalui `Voucher Entity`, serta menyimpan data melalui `VoucherRepository`, `JpaVoucherRepository`, sampai ke `Vouchers Table`. `GlobalExceptionHandler` menangani exception yang muncul dari layer controller.
+
+## Code Diagram - Create / Update Voucher Flow
+
+![Code Diagram - Create Update Voucher Flow](docs/module-9/samuel/code-diagram-create-update-voucher-flow.svg)
+
+Code diagram ini menjelaskan alur saat voucher dibuat atau diperbarui. Request dari `CreateVoucherRequest` atau `UpdateVoucherRequest` masuk ke `VoucherController`, lalu diubah menjadi `CreateVoucherCommand` atau `UpdateVoucherCommand`. Setelah itu `VoucherService` menjalankan `createVoucher()`, `updateVoucher()`, dan `validateVoucherPeriod()`, kemudian membuat atau memperbarui `Voucher Entity` dan menyimpan hasilnya melalui `VoucherWriteRepository`.
+
+## Code Diagram - Validate / Redeem Voucher Flow
+
+![Code Diagram - Validate Redeem Voucher Flow](docs/module-9/samuel/code-diagram-validate-redeem-voucher-flow.svg)
+
+Code diagram ini menunjukkan alur validasi dan redeem voucher. `ValidateVoucherRequest` atau `RedeemVoucherRequest` diproses oleh `VoucherController`, lalu diteruskan ke `VoucherService`. Service mengambil data melalui `VoucherReadRepository`, menjalankan aturan bisnis pada `Voucher Entity`, seperti `validateVoucherIsActive()`, `validateVoucherHasStarted()`, `validateVoucherNotExpired()`, dan `validateVoucherQuotaAvailable()`. Jika voucher valid, hasilnya disimpan melalui `VoucherWriteRepository`; jika tidak valid, flow dapat menghasilkan `InvalidVoucherStateException` atau `VoucherQuotaExhaustedException`.

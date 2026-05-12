@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1640" height="963" viewBox="0 0 1640 963">
+  <defs>
+    <pattern id="smallGrid" width="12" height="12" patternUnits="userSpaceOnUse">
+      <path d="M 12 0 L 0 0 0 12" fill="none" stroke="#eeeeee" stroke-width="1"/>
+    </pattern>
+    <pattern id="grid" width="60" height="60" patternUnits="userSpaceOnUse">
+      <rect width="60" height="60" fill="url(#smallGrid)"/>
+      <path d="M 60 0 L 0 0 0 60" fill="none" stroke="#d6d6d6" stroke-width="1"/>
+    </pattern>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#111"/>
+    </marker>
+    <marker id="hollowArrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L9,3 L0,6" fill="none" stroke="#111" stroke-width="1"/>
+    </marker>
+  </defs>
+  <rect width="1640" height="963" fill="url(#grid)"/>
+  <text x="536" y="73" font-family="Arial, sans-serif" font-size="18">Samuel Indriano - 2406400524</text>
+  <text x="932" y="73" font-family="Arial, sans-serif" font-size="24">json-voucher-service</text>
+
+  <rect x="527" y="101" width="1027" height="819" fill="#fff" stroke="#111" stroke-width="1.5"/>
+  <rect x="85" y="295" width="300" height="209" fill="#fff" stroke="#111" stroke-width="1.5"/>
+  <text x="183" y="407" font-family="Arial, sans-serif" font-size="24">Front End</text>
+
+  <rect x="657" y="152" width="195" height="79" fill="#fff" stroke="#111" stroke-width="1.5"/>
+  <text x="670" y="196" font-family="Arial, sans-serif" font-size="16">GlobalExceptionHandler</text>
+
+  <rect x="904" y="152" width="157" height="79" fill="#fff" stroke="#111" stroke-width="1.5"/>
+  <text x="931" y="196" font-family="Arial, sans-serif" font-size="16">Voucher Entity</text>
+
+  <rect x="676" y="360" width="157" height="79" fill="#fff" stroke="#111" stroke-width="1.5"/>
+  <text x="690" y="404" font-family="Arial, sans-serif" font-size="16">VoucherController</text>
+
+  <rect x="904" y="360" width="157" height="79" fill="#fff" stroke="#111" stroke-width="1.5"/>
+  <text x="926" y="404" font-family="Arial, sans-serif" font-size="16">VoucherService</text>
+
+  <rect x="1125" y="360" width="195" height="79" fill="#fff" stroke="#111" stroke-width="1.5"/>
+  <text x="1165" y="394" font-family="Arial, sans-serif" font-size="16">&lt;&lt;interface&gt;&gt;</text>
+  <text x="1137" y="414" font-family="Arial, sans-serif" font-size="16">VoucherReadRepository</text>
+
+  <rect x="904" y="490" width="157" height="79" fill="#fff" stroke="#111" stroke-width="1.5"/>
+  <text x="916" y="534" font-family="Arial, sans-serif" font-size="16">VoucherRepository</text>
+
+  <rect x="1125" y="607" width="195" height="79" fill="#fff" stroke="#111" stroke-width="1.5"/>
+  <text x="1165" y="642" font-family="Arial, sans-serif" font-size="16">&lt;&lt;interface&gt;&gt;</text>
+  <text x="1136" y="662" font-family="Arial, sans-serif" font-size="16">VoucherWriteRepository</text>
+
+  <rect x="885" y="751" width="195" height="78" fill="#fff" stroke="#111" stroke-width="1.5"/>
+  <text x="912" y="781" font-family="Arial, sans-serif" font-size="16">&lt;&lt;Spring Data JPA&gt;&gt;</text>
+  <text x="902" y="802" font-family="Arial, sans-serif" font-size="16">JpaVoucherRepository</text>
+
+  <rect x="1216" y="750" width="157" height="79" fill="#fff" stroke="#111" stroke-width="1.5"/>
+  <text x="1240" y="795" font-family="Arial, sans-serif" font-size="16">Vouchers Table</text>
+
+  <line x1="385" y1="400" x2="676" y2="400" stroke="#111" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="833" y1="400" x2="904" y2="400" stroke="#111" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="982" y1="360" x2="982" y2="231" stroke="#111" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="754" y1="360" x2="754" y2="231" stroke="#111" stroke-width="1.5" stroke-dasharray="5 5" marker-end="url(#arrow)"/>
+  <line x1="1061" y1="400" x2="1125" y2="400" stroke="#111" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <path d="M1061 400 L1093 400 L1093 646 L1125 646" fill="none" stroke="#111" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <path d="M1061 530 L1223 530 L1223 439" fill="none" stroke="#111" stroke-width="1.5" stroke-dasharray="5 5" marker-end="url(#hollowArrow)"/>
+  <path d="M1223 439 L1223 607" fill="none" stroke="#111" stroke-width="1.5" stroke-dasharray="5 5" marker-end="url(#hollowArrow)"/>
+  <line x1="982" y1="569" x2="982" y2="751" stroke="#111" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="1080" y1="790" x2="1216" y2="790" stroke="#111" stroke-width="1.5" marker-end="url(#arrow)"/>
+</svg>

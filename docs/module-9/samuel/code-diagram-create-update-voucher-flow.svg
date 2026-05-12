@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1317" height="916" viewBox="0 0 1317 916">
+  <defs>
+    <pattern id="smallGrid" width="12" height="12" patternUnits="userSpaceOnUse">
+      <path d="M 12 0 L 0 0 0 12" fill="none" stroke="#eeeeee" stroke-width="1"/>
+    </pattern>
+    <pattern id="grid" width="60" height="60" patternUnits="userSpaceOnUse">
+      <rect width="60" height="60" fill="url(#smallGrid)"/>
+      <path d="M 60 0 L 0 0 0 60" fill="none" stroke="#d6d6d6" stroke-width="1"/>
+    </pattern>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#111"/>
+    </marker>
+  </defs>
+  <rect width="1317" height="916" fill="url(#grid)"/>
+  <text x="522" y="51" font-family="Arial, sans-serif" font-size="24">Create/Update Voucher Flow</text>
+  <rect x="83" y="77" width="1177" height="819" fill="#fff" stroke="#111" stroke-width="1.5"/>
+
+  <rect x="121" y="356" width="183" height="79" fill="#fff" stroke="#111" stroke-width="1.5"/>
+  <text x="132" y="400" font-family="Arial, sans-serif" font-size="16">CreateVoucherRequest</text>
+
+  <rect x="121" y="467" width="183" height="78" fill="#fff" stroke="#111" stroke-width="1.5"/>
+  <text x="130" y="511" font-family="Arial, sans-serif" font-size="16">UpdateVoucherRequest</text>
+
+  <rect x="472" y="356" width="157" height="79" fill="#fff" stroke="#111" stroke-width="1.5"/>
+  <text x="477" y="388" font-family="Arial, sans-serif" font-size="16">VoucherController</text>
+  <text x="477" y="408" font-family="Arial, sans-serif" font-size="16">+ createVoucher()</text>
+  <text x="477" y="426" font-family="Arial, sans-serif" font-size="16">+ updateVoucher()</text>
+
+  <rect x="317" y="557" width="208" height="78" fill="#fff" stroke="#111" stroke-width="1.5"/>
+  <text x="333" y="602" font-family="Arial, sans-serif" font-size="16">CreateVoucherCommand</text>
+
+  <rect x="567" y="557" width="209" height="78" fill="#fff" stroke="#111" stroke-width="1.5"/>
+  <text x="583" y="602" font-family="Arial, sans-serif" font-size="16">UpdateVoucherCommand</text>
+
+  <rect x="681" y="356" width="195" height="79" fill="#fff" stroke="#111" stroke-width="1.5"/>
+  <text x="718" y="372" font-family="Arial, sans-serif" font-size="16">VoucherService</text>
+  <text x="686" y="392" font-family="Arial, sans-serif" font-size="16">+ createVoucher()</text>
+  <text x="686" y="411" font-family="Arial, sans-serif" font-size="16">+ updateVoucher()</text>
+  <text x="686" y="429" font-family="Arial, sans-serif" font-size="16">+ validateVoucherPeriod()</text>
+
+  <rect x="700" y="207" width="157" height="79" fill="#fff" stroke="#111" stroke-width="1.5"/>
+  <text x="719" y="231" font-family="Arial, sans-serif" font-size="16">Voucher Entity</text>
+  <text x="704" y="250" font-family="Arial, sans-serif" font-size="16">+ Voucher(...)</text>
+  <text x="704" y="269" font-family="Arial, sans-serif" font-size="16">+ updateDetails(...)</text>
+
+  <rect x="941" y="356" width="195" height="79" fill="#fff" stroke="#111" stroke-width="1.5"/>
+  <text x="982" y="390" font-family="Arial, sans-serif" font-size="16">&lt;&lt;interface&gt;&gt;</text>
+  <text x="953" y="410" font-family="Arial, sans-serif" font-size="16">VoucherReadRepository</text>
+
+  <rect x="922" y="603" width="279" height="78" fill="#fff" stroke="#111" stroke-width="1.5"/>
+  <text x="926" y="636" font-family="Arial, sans-serif" font-size="16">&lt;&lt;interface&gt;&gt; VoucherWriteRepository</text>
+  <text x="926" y="656" font-family="Arial, sans-serif" font-size="16">+ save(voucher)</text>
+
+  <path d="M304 396 L356 396 L356 396 L472 396" fill="none" stroke="#111" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <path d="M304 506 L356 506 L356 396" fill="none" stroke="#111" stroke-width="1.5"/>
+  <line x1="629" y1="396" x2="681" y2="396" stroke="#111" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="778" y1="356" x2="778" y2="286" stroke="#111" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="876" y1="396" x2="941" y2="396" stroke="#111" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <path d="M876 396 L902 396 L902 519 L896 519 L896 643 L922 643" fill="none" stroke="#111" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <path d="M550 435 L550 496 L421 496 L421 557" fill="none" stroke="#111" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <path d="M550 435 L550 496 L672 496 L672 557" fill="none" stroke="#111" stroke-width="1.5" marker-end="url(#arrow)"/>
+</svg>

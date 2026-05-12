@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1582" height="910" viewBox="0 0 1582 910">
+  <defs>
+    <pattern id="smallGrid" width="12" height="12" patternUnits="userSpaceOnUse">
+      <path d="M 12 0 L 0 0 0 12" fill="none" stroke="#eeeeee" stroke-width="1"/>
+    </pattern>
+    <pattern id="grid" width="60" height="60" patternUnits="userSpaceOnUse">
+      <rect width="60" height="60" fill="url(#smallGrid)"/>
+      <path d="M 60 0 L 0 0 0 60" fill="none" stroke="#d6d6d6" stroke-width="1"/>
+    </pattern>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#111"/>
+    </marker>
+  </defs>
+  <rect width="1582" height="910" fill="url(#grid)"/>
+  <text x="597" y="71" font-family="Arial, sans-serif" font-size="28">Validate/Redeem Voucher Flow</text>
+  <rect x="72" y="102" width="1450" height="777" fill="#fff" stroke="#111" stroke-width="1.5"/>
+
+  <rect x="200" y="445" width="225" height="97" fill="#fff" stroke="#111" stroke-width="1.5"/>
+  <text x="207" y="501" font-family="Arial, sans-serif" font-size="18">ValidateVoucherRequest</text>
+
+  <rect x="200" y="599" width="225" height="96" fill="#fff" stroke="#111" stroke-width="1.5"/>
+  <text x="206" y="653" font-family="Arial, sans-serif" font-size="18">RedeemVoucherRequest</text>
+
+  <rect x="552" y="445" width="193" height="97" fill="#fff" stroke="#111" stroke-width="1.5"/>
+  <text x="561" y="480" font-family="Arial, sans-serif" font-size="18">VoucherController</text>
+  <text x="556" y="501" font-family="Arial, sans-serif" font-size="18">+ validateVoucher()</text>
+  <text x="556" y="523" font-family="Arial, sans-serif" font-size="18">+ redeemVoucher()</text>
+
+  <rect x="793" y="445" width="257" height="97" fill="#fff" stroke="#111" stroke-width="1.5"/>
+  <text x="850" y="480" font-family="Arial, sans-serif" font-size="18">VoucherService</text>
+  <text x="798" y="501" font-family="Arial, sans-serif" font-size="18">+ previewVoucherDiscount()</text>
+  <text x="798" y="523" font-family="Arial, sans-serif" font-size="18">+ redeemVoucher()</text>
+
+  <rect x="745" y="142" width="354" height="248" fill="#fff" stroke="#111" stroke-width="1.5"/>
+  <text x="834" y="182" font-family="Arial, sans-serif" font-size="20">Voucher Entity</text>
+  <text x="749" y="203" font-family="Arial, sans-serif" font-size="18">+ previewDiscount()</text>
+  <text x="749" y="226" font-family="Arial, sans-serif" font-size="18">+ calculateDiscount()</text>
+  <text x="749" y="249" font-family="Arial, sans-serif" font-size="18">+ redeem()</text>
+  <text x="749" y="272" font-family="Arial, sans-serif" font-size="18">+ validateEligible()</text>
+  <text x="749" y="295" font-family="Arial, sans-serif" font-size="18">+ validateVoucherIsActive()</text>
+  <text x="749" y="318" font-family="Arial, sans-serif" font-size="18">+ validateVoucherHasStarted()</text>
+  <text x="749" y="341" font-family="Arial, sans-serif" font-size="18">+ validateVoucherNotExpired()</text>
+  <text x="749" y="364" font-family="Arial, sans-serif" font-size="18">+ validateVoucherQuotaAvailable()</text>
+
+  <rect x="1205" y="173" width="278" height="97" fill="#fff" stroke="#111" stroke-width="1.5"/>
+  <text x="1215" y="229" font-family="Arial, sans-serif" font-size="20">InvalidVoucherStateException</text>
+
+  <rect x="1205" y="294" width="278" height="96" fill="#fff" stroke="#111" stroke-width="1.5"/>
+  <text x="1214" y="350" font-family="Arial, sans-serif" font-size="20">VoucherQuotaExhaustedException</text>
+
+  <rect x="1130" y="445" width="239" height="97" fill="#fff" stroke="#111" stroke-width="1.5"/>
+  <text x="1162" y="480" font-family="Arial, sans-serif" font-size="18">&lt;&lt;interface&gt;&gt;</text>
+  <text x="1144" y="501" font-family="Arial, sans-serif" font-size="18">VoucherReadRepository</text>
+  <text x="1192" y="523" font-family="Arial, sans-serif" font-size="18">+ findById()</text>
+
+  <rect x="1130" y="751" width="345" height="96" fill="#fff" stroke="#111" stroke-width="1.5"/>
+  <text x="1134" y="793" font-family="Arial, sans-serif" font-size="18">&lt;&lt;interface&gt;&gt; VoucherWriteRepository</text>
+  <text x="1134" y="817" font-family="Arial, sans-serif" font-size="18">+ save(voucher)</text>
+
+  <line x1="425" y1="494" x2="552" y2="494" stroke="#111" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <path d="M425 647 L648 647 L648 542" fill="none" stroke="#111" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="745" y1="494" x2="793" y2="494" stroke="#111" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="922" y1="445" x2="922" y2="390" stroke="#111" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="1050" y1="494" x2="1130" y2="494" stroke="#111" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <path d="M1050 494 L1090 494 L1090 799 L1130 799" fill="none" stroke="#111" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <path d="M1099 265 L1151 265 L1151 221 L1205 221" fill="none" stroke="#111" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <path d="M1099 265 L1151 265 L1151 342 L1205 342" fill="none" stroke="#111" stroke-width="1.5" marker-end="url(#arrow)"/>
+</svg>
