@@ -333,3 +333,28 @@ Future deployment juga menambahkan Message Broker, Monitoring & Logging, dan ext
 | Reliability | Komunikasi antarservice dominan synchronous REST API | Message Broker untuk event-driven communication dan retry |
 | Observability | Monitoring dan logging belum tergambar jelas | Ditambahkan Monitoring & Logging |
 | External Integration | External services belum tergambar jelas | Payment Gateway, Email Service, dan Object Storage ditambahkan |
+
+# Explanation of Risk Storming of Group A3
+
+Risk storming is applied in this project to identify architectural risks in the current JSON Platform before deciding the future architecture. Since JSON is designed as a microservice-based system with several modules such as Auth, Inventory, Order, Wallet, Voucher, and Frontend, failures may happen not only inside one service but also in the communication between services. Therefore, the team needs a structured technique to discuss risks related to security, scalability, reliability, data consistency, and deployment.
+
+By applying risk storming, the team can analyze the current context, container, and deployment diagrams collaboratively. Each member can identify possible weak points from their own module, such as direct service exposure, lack of internal authentication, synchronous communication between services, or possible inconsistency between Order, Inventory, Wallet, and Voucher during checkout. These risks are then discussed and prioritized based on their impact on the system.
+
+The result of risk storming is used as the basis for designing the future architecture. Instead of adding components randomly, each future improvement is connected to a specific risk. For example, API Gateway is proposed to improve security and routing, Message Broker is proposed to improve reliability and asynchronous processing, database separation is proposed to improve service ownership, and monitoring/logging is proposed to improve observability. This makes the future architecture more justified and aligned with the actual risks found in the system.
+
+## Risk Storming Result
+
+| No | Risk Area | Current Risk | Impact | Risk Level | Proposed Mitigation |
+|---|---|---|---|---|---|
+| 1 | Security | Backend services can be accessed directly without a centralized gateway | Public endpoints may be misused and access control becomes harder to manage | High | Add API Gateway / Reverse Proxy with HTTPS termination, rate limiting, routing, and centralized access control |
+| 2 | Security | Internal service endpoints, such as reduce stock, may be exposed publicly | Unauthorized users may trigger sensitive internal operations | High | Add internal service authentication using service token or internal API key |
+| 3 | Reliability | Order, Inventory, Wallet, and Voucher communicate mostly using synchronous REST calls | If one service is down, checkout flow can fail or become inconsistent | High | Add Message Broker for asynchronous event-driven communication and retry mechanism |
+| 4 | Data Consistency | Checkout involves multiple services such as Order, Inventory, Wallet, and Voucher | Order may be created while stock, payment, or voucher state is not updated correctly | High | Use event-driven flow, retry mechanism, and compensating transaction / saga pattern |
+| 5 | Scalability | Backend services may run on limited EC2 instances | High traffic during war or flash sale can cause bottlenecks | Medium | Add load balancing, horizontal scaling, and separate scaling per microservice |
+| 6 | Observability | Logging and monitoring are not centralized | Failures between services are difficult to trace and debug | Medium | Add centralized monitoring, logging, and tracing using tools such as Prometheus, Grafana, or ELK |
+| 7 | Deployment | Frontend may be deployed on HTTPS while backend services are still accessed through HTTP | Browser may block requests due to mixed content and communication is less secure | High | Add HTTPS support through API Gateway or Reverse Proxy |
+| 8 | Data Ownership | Current architecture may still be interpreted as using one shared database | Service boundaries become unclear and changes in one module may affect others | Medium | Separate database per service based on bounded context |
+
+## Conclusion
+
+Risk storming helps the team understand the weaknesses of the current architecture and connect them directly to concrete improvements in the future architecture. The technique is useful because the JSON Platform consists of multiple interconnected services, where architectural risks can appear from service communication, data ownership, deployment, and security boundaries. By applying risk storming, the proposed future architecture becomes more focused, traceable, and aligned with the actual needs of the system.
