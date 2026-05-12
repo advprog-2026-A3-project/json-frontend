@@ -1070,3 +1070,18 @@ Code diagram ini menjelaskan alur saat voucher dibuat atau diperbarui. Request d
 ![Code Diagram - Validate Redeem Voucher Flow](docs/module-9/samuel/code-diagram-validate-redeem-voucher-flow.svg)
 
 Code diagram ini menunjukkan alur validasi dan redeem voucher. `ValidateVoucherRequest` atau `RedeemVoucherRequest` diproses oleh `VoucherController`, lalu diteruskan ke `VoucherService`. Service mengambil data melalui `VoucherReadRepository`, menjalankan aturan bisnis pada `Voucher Entity`, seperti `validateVoucherIsActive()`, `validateVoucherHasStarted()`, `validateVoucherNotExpired()`, dan `validateVoucherQuotaAvailable()`. Jika voucher valid, hasilnya disimpan melalui `VoucherWriteRepository`; jika tidak valid, flow dapat menghasilkan `InvalidVoucherStateException` atau `VoucherQuotaExhaustedException`.
+
+## Individual Work - Jenisa Bunga (Wallet Service)
+
+### Component Diagram
+<img width="1042" height="691" alt="Component Diagram — Wallet Service" src="https://github.com/user-attachments/assets/a33fbbf6-acbe-4ec5-891e-380513b79129" />
+
+
+
+Diagram ini menunjukkan komponen-komponen dalam Wallet Service. WalletController menerima HTTP request dari Frontend dan Order Service, kemudian memanggil WalletService untuk memproses logika bisnis. WalletService menggunakan WalletRepository untuk akses database dan WalletTransactionStrategyFactory untuk menentukan strategi transaksi (top-up atau withdraw).
+
+### Code Diagram
+<img width="922" height="714" alt="Code Diagram — Wallet Service" src="https://github.com/user-attachments/assets/5917976b-8b9a-40fd-847a-e66850f1c306" />
+
+
+Diagram ini menunjukkan detail class dan interface dalam Wallet Service. WalletController menggunakan interface WalletOperations yang diimplementasikan oleh WalletService. WalletService mengelola entity UserWallet melalui WalletRepository dan menggunakan WalletTransactionStrategyFactory dengan enum WalletTransactionType untuk memproses transaksi.
