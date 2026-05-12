@@ -358,3 +358,261 @@ The result of risk storming is used as the basis for designing the future archit
 ## Conclusion
 
 Risk storming helps the team understand the weaknesses of the current architecture and connect them directly to concrete improvements in the future architecture. The technique is useful because the JSON Platform consists of multiple interconnected services, where architectural risks can appear from service communication, data ownership, deployment, and security boundaries. By applying risk storming, the proposed future architecture becomes more focused, traceable, and aligned with the actual needs of the system.
+
+
+# Individual Work - Anak Agung Ngurah Abhivadya Nandana
+
+## Component Diagram - Order and Inventory Integration
+
+Component diagram ini menjelaskan bagian yang saya kerjakan dalam integrasi antara Order Service dan Inventory Service. Integrasi ini digunakan agar Order Service tidak hanya menerima data produk dari request frontend, tetapi mengambil data resmi dari Inventory Service berdasarkan `productId`.
+
+```mermaid
+flowchart TB
+    subgraph ORDER["Order Service"]
+        OrderController["OrderController"]
+        OrderServiceImpl["OrderServiceImpl"]
+        CheckoutService["CheckoutService"]
+        InventoryClient["InventoryClient"]
+        OrderRepository["OrderRepository"]
+        OrderDB[("Order Database")]
+    end
+
+    subgraph INVENTORY["Inventory Service"]
+        ProductController["ProductController"]
+        ProductService["ProductService"]
+        ProductRepository["ProductRepository"]
+        ProductDB[("Inventory Database")]
+    end
+
+    OrderController --> OrderServiceImpl
+    OrderController --> CheckoutService
+
+    OrderServiceImpl --> InventoryClient
+    CheckoutService --> InventoryClient
+
+    OrderServiceImpl --> OrderRepository
+    CheckoutService --> OrderRepository
+    OrderRepository --> OrderDB
+
+    InventoryClient -->|"GET /api/products/{id}"| ProductController
+    InventoryClient -->|"PATCH /api/products/{id}/stock/reduce?quantity={quantity}"| ProductController
+
+    ProductController --> ProductService
+    ProductService --> ProductRepository
+    ProductRepository --> ProductDB
+```
+
+### Component Diagram Explanation
+
+Pada diagram ini, `OrderServiceImpl` bertanggung jawab untuk membuat order awal, sedangkan `CheckoutService` bertanggung jawab untuk proses checkout. Keduanya menggunakan `InventoryClient` untuk berkomunikasi dengan Inventory Service.
+
+`InventoryClient` memiliki dua tanggung jawab utama. Pertama, mengambil detail produk dari Inventory Service menggunakan endpoint `GET /api/products/{id}`. Kedua, mengurangi stok produk setelah checkout berhasil menggunakan endpoint `PATCH /api/products/{id}/stock/reduce?quantity={quantity}`.
+
+Dengan desain ini, data penting seperti `productName`, `jastiperUserId`, `harga`, dan `stok` tidak sepenuhnya dipercaya dari request frontend. Order Service akan mengambil data tersebut dari Inventory Service agar proses order dan checkout lebih konsisten.
+
+---
+
+## Code Diagram 1 - Create Order Flow
+
+Code diagram ini menjelaskan alur ketika user membuat order melalui `OrderServiceImpl`.
+
+```mermaid
+sequenceDiagram
+    actor FE as Frontend
+    participant OC as OrderController
+    participant OS as OrderServiceImpl
+    participant IC as InventoryClient
+    participant INV as Inventory Service
+    participant OR as OrderRepository
+    participant DB as Order Database
+
+    FE->>OC: POST /api/v1/orders
+    OC->>OS: createOrder(request)
+
+    OS->>IC: getProductById(productId)
+    IC->>INV: GET /api/products/{id}
+    INV-->>IC: Product data
+
+    IC-->>OS: InventoryProductResponse
+
+    OS->>OS: validateStock(product, quantity)
+    OS->>OS: totalPrice = product.harga * quantity
+    OS->>OS: override productName, jastiperUserId, totalPrice
+    OS->>OS: validateNotSelfPurchase(request)
+
+    OS->>OR: save(order)
+    OR->>DB: INSERT order
+    DB-->>OR: saved order
+    OR-->>OS: saved order
+    OS-->>OC: saved order
+    OC-->>FE: order response
+```
+
+### Explanation
+
+Pada flow ini, Order Service mengambil detail produk dari Inventory Service sebelum order dibuat. Setelah produk ditemukan, service melakukan validasi stok dan menghitung `totalPrice` berdasarkan harga dari Inventory dikalikan jumlah produk.
+
+Setelah itu, field seperti `productName`, `jastiperUserId`, dan `totalPrice` di-override menggunakan data dari Inventory. Hal ini dilakukan agar frontend tidak bisa memanipulasi nama produk, pemilik produk, atau harga order.
+
+---
+
+## Code Diagram 2 - Checkout Flow
+
+Code diagram ini menjelaskan alur checkout melalui `CheckoutService`.
+
+```mermaid
+sequenceDiagram
+    actor FE as Frontend
+    participant OC as OrderController
+    participant CS as CheckoutService
+    participant IC as InventoryClient
+    participant INV as Inventory Service
+    participant VC as VoucherClient
+    participant VS as Voucher Service
+    participant OR as OrderRepository
+    participant DB as Order Database
+
+    FE->>OC: POST /api/v1/orders/checkout
+    OC->>CS: checkout(request)
+
+    CS->>IC: getProductById(productId)
+    IC->>INV: GET /api/products/{id}
+    INV-->>IC: Product data
+    IC-->>CS: InventoryProductResponse
+
+    CS->>CS: validateStock(product, quantity)
+    CS->>CS: subtotal = product.harga * quantity
+    CS->>CS: override productName, jastiperUserId, subtotal
+    CS->>CS: validateNotSelfPurchase(request)
+
+    alt voucherCode exists
+        CS->>VC: validateVoucher(voucherCode, subtotal)
+        VC->>VS: Validate voucher
+        VS-->>VC: discount amount
+        VC-->>CS: VoucherValidateResponse
+    end
+
+    CS->>CS: totalPaid = subtotal - discountAmount
+    CS->>OR: save(order)
+    OR->>DB: INSERT order
+    DB-->>OR: saved order
+    OR-->>CS: saved order
+
+    CS-->>OC: CheckoutResponse
+    OC-->>FE: checkout response
+```
+
+### Explanation
+
+Pada checkout flow, `CheckoutService` mengambil data produk dari Inventory Service, memvalidasi stok, lalu menghitung subtotal berdasarkan harga produk dari Inventory. Jika user menggunakan voucher, service akan memvalidasi voucher terlebih dahulu sebelum menghitung total pembayaran akhir.
+
+Flow ini memastikan bahwa subtotal tidak diambil langsung dari frontend. Dengan begitu, harga checkout tetap konsisten dengan data produk yang tersimpan di Inventory Service.
+
+---
+
+## Code Diagram 3 - Reduce Stock Flow
+
+Code diagram ini menjelaskan alur pengurangan stok setelah checkout berhasil.
+
+```mermaid
+sequenceDiagram
+    participant CS as CheckoutService
+    participant IC as InventoryClient
+    participant PC as ProductController
+    participant PS as ProductService
+    participant PR as ProductRepository
+    participant DB as Inventory Database
+
+    CS->>IC: reduceProductStock(productId, quantity)
+    IC->>PC: PATCH /api/products/{id}/stock/reduce?quantity={quantity}
+
+    PC->>PS: reduceStock(id, quantity)
+    PS->>PR: findById(id)
+    PR->>DB: SELECT product
+    DB-->>PR: product
+    PR-->>PS: product
+
+    PS->>PS: validate quantity >= 1
+    PS->>PS: validate stock >= quantity
+    PS->>PS: product.stok = product.stok - quantity
+
+    PS->>PR: save(product)
+    PR->>DB: UPDATE product stock
+    DB-->>PR: updated product
+    PR-->>PS: updated product
+    PS-->>PC: updated product
+    PC-->>IC: updated product
+    IC-->>CS: success
+```
+
+### Explanation
+
+Pengurangan stok dilakukan oleh Inventory Service karena stok merupakan bagian dari domain Inventory. Order Service hanya memanggil endpoint khusus `PATCH /api/products/{id}/stock/reduce?quantity={quantity}` melalui `InventoryClient`.
+
+Di Inventory Service, `ProductService` akan mencari produk berdasarkan id, memvalidasi quantity, memastikan stok tidak kurang dari jumlah yang diminta, lalu mengurangi stok dan menyimpan perubahan ke database. Dengan cara ini, logic stok tetap berada di Inventory Service dan tidak dipindahkan ke Order Service.
+
+---
+
+## Code Diagram 4 - InventoryClient Responsibility
+
+Code diagram ini menjelaskan tanggung jawab `InventoryClient` sebagai penghubung antara Order Service dan Inventory Service.
+
+```mermaid
+classDiagram
+    class InventoryClient {
+        -String inventoryServiceBaseUrl
+        -RestTemplate restTemplate
+        +getProductById(String productId) InventoryProductResponse
+        +reduceProductStock(String productId, Integer quantity) void
+    }
+
+    class InventoryProductResponse {
+        -String id
+        -String nama
+        -String deskripsi
+        -BigDecimal harga
+        -Integer stok
+        -String negaraAsal
+        -LocalDate tanggalPembelian
+        -LocalDate tanggalKembali
+        -List~String~ imageUrls
+        -String jastiperId
+    }
+
+    class OrderServiceImpl {
+        +createOrder(OrderCreateRequest request) Order
+        +updateOrder(Long id, OrderCreateRequest request) Order
+    }
+
+    class CheckoutService {
+        +checkout(CheckoutRequest request) CheckoutResponse
+    }
+
+    OrderServiceImpl --> InventoryClient : uses
+    CheckoutService --> InventoryClient : uses
+    InventoryClient --> InventoryProductResponse : returns
+```
+
+### Explanation
+
+`InventoryClient` berperan sebagai client internal yang digunakan oleh Order Service untuk mengakses Inventory Service. Method `getProductById` digunakan untuk mengambil detail produk, sedangkan `reduceProductStock` digunakan untuk mengurangi stok setelah checkout berhasil.
+
+Dengan memisahkan komunikasi ke Inventory Service ke dalam `InventoryClient`, logic HTTP call tidak tersebar di `OrderServiceImpl` dan `CheckoutService`. Hal ini membuat code lebih rapi, lebih mudah dirawat, dan lebih mudah diuji menggunakan mock pada unit test.
+
+---
+
+## Individual Work Summary
+
+Pada individual work ini, saya berfokus pada integrasi antara Order Service dan Inventory Service. Tujuan utama integrasi ini adalah memastikan proses pembuatan order dan checkout menggunakan data produk yang valid dari Inventory Service.
+
+Perubahan utama yang dijelaskan dalam diagram ini meliputi:
+
+| Area | Penjelasan |
+|---|---|
+| Product Data Source | Order Service mengambil data produk dari Inventory Service berdasarkan `productId` |
+| Price Calculation | `totalPrice` dan `subtotal` dihitung dari harga Inventory, bukan dari request frontend |
+| Stock Validation | Order Service memvalidasi stok berdasarkan data dari Inventory |
+| Stock Reduction | Inventory Service mengurangi stok melalui endpoint khusus setelah checkout berhasil |
+| Service Boundary | Logic stok tetap berada di Inventory Service, sedangkan Order Service hanya melakukan orchestration |
+
+Dengan pendekatan ini, integrasi antarservice menjadi lebih jelas. Order Service bertugas mengatur proses order dan checkout, sedangkan Inventory Service tetap menjadi source of truth untuk data produk dan stok.
