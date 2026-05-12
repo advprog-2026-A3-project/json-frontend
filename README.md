@@ -73,6 +73,8 @@ C4Container
 
     UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="1")
 ```
+## Deplyment Diagram
+<img width="8191" height="4710" alt="Deployment Diagram" src="https://github.com/user-attachments/assets/08ab5510-59ba-4044-8e48-7c91a093a50f" />
 
 ---
 
