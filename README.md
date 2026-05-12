@@ -42,6 +42,9 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 **JSON** adalah platform yang menghubungkan **Titipers** (pembeli barang limited/viral) dengan **Jastipers** (traveler yang menyediakan jasa titip). Sistem dirancang untuk menangani lonjakan traffic tinggi saat *War* (perebutan barang limited) dan menjamin keamanan transaksi keuangan melalui fitur **Wallet**.
 
 ---
+## Context Diagram
+
+<img width="770" height="501" alt="ContextDiagram" src="https://github.com/user-attachments/assets/9199ae1f-c1ea-4d23-8459-7a40adf577ee" />
 
 ## Container Diagram (Mermaid.js)
 
